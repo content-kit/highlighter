@@ -37,5 +37,23 @@ defmodule HighlighterTest do
                %Annotation{start: 1, finish: 3, left: "<x>", right: "</x>"}
              ]
     end
+
+    test "same range with want_inner specified" do
+      annotations = [
+        %Annotation{start: 1, finish: 3, left: "<x>", right: "</x>"},
+        %Annotation{start: 1, finish: 3, left: "<z>", right: "</z>", want_inner: 2},
+        %Annotation{start: 1, finish: 3, left: "<q>", right: "</q>", want_inner: -1},
+        %Annotation{start: 1, finish: 3, left: "<y>", right: "</y>", want_inner: 1}
+      ]
+
+      sorted = Annotations.sort(annotations)
+
+      assert sorted == [
+               %Annotation{start: 1, finish: 3, left: "<q>", right: "</q>", want_inner: -1},
+               %Annotation{start: 1, finish: 3, left: "<x>", right: "</x>"},
+               %Annotation{start: 1, finish: 3, left: "<y>", right: "</y>", want_inner: 1},
+               %Annotation{start: 1, finish: 3, left: "<z>", right: "</z>", want_inner: 2}
+             ]
+    end
   end
 end
