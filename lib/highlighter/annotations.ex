@@ -4,6 +4,9 @@ defmodule Highlighter.Annotations do
   def open_tag(%Annotation{open: open}), do: open
   def close_tag(%Annotation{close: close}), do: close
 
+  def starts_here?(%Annotation{start_pos: start_pos}, pos) when start_pos == pos, do: true
+  def starts_here?(_ann, _pos), do: false
+
   def sort(annotations) when is_list(annotations) do
     annotations
     |> Enum.sort(&do_sort/2)
