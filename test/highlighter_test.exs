@@ -155,6 +155,34 @@ defmodule HighlighterTest do
     end
   end
 
+  describe "filter_ends_after/2" do
+    setup do
+      dog_ann = %Annotation{start_pos: 1, end_pos: 3, open: "<dog>", close: "</dog>"}
+      koala_ann = %Annotation{start_pos: 9, end_pos: 13, open: "<koala>", close: "</koala>"}
+      cat_ann = %Annotation{start_pos: 5, end_pos: 7, open: "<cat>", close: "</cat>"}
+
+      annotations = [dog_ann, koala_ann, cat_ann]
+
+      %{dog_ann: dog_ann, koala_ann: koala_ann, cat_ann: cat_ann, annotations: annotations}
+    end
+
+    test "returns a list of annotations which end after the position arg",
+         %{annotations: annotations, koala_ann: koala_ann} do
+      assert Annotations.filter_ends_after(annotations, 12) == [koala_ann]
+      assert Annotations.filter_ends_after(annotations, 13) == []
+    end
+
+    test "returns an empty list when no annotations end after the position arg",
+         %{annotations: annotations} do
+      assert Annotations.filter_ends_after(annotations, 13) == []
+    end
+
+    test "returns an empty list when the list of annotations is also empty" do
+      assert Annotations.filter_ends_after([], 0) == []
+      assert Annotations.filter_ends_after([], 13) == []
+    end
+  end
+
   # describe "annotate/2" do
   #   test "one annotation" do
   #     dog_annotation = %Annotation{start_pos: 1, end_pos: 3, open: "<woof>", close: "</woof>"}

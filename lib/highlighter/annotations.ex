@@ -49,6 +49,10 @@ defmodule Highlighter.Annotations do
     |> Enum.join("")
   end
 
+  def filter_ends_after(annotations, pos) when is_list(annotations) do
+    Enum.filter(annotations, &ends_after?(&1, pos))
+  end
+
   # def annotate(string, annotations) when is_binary(string) and is_list(annotations) do
   #   sorted_anns = sort(annotations)
   #   charlist_with_pos = string |> String.to_charlist() |> Enum.with_index(1)
