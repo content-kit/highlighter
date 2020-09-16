@@ -124,7 +124,7 @@ defmodule Highlighter.Annotations do
   def annotate(string, annotations) when is_binary(string) and is_list(annotations) do
     with {:ok, annotations} <- validate(annotations, string),
          anns <- sort(annotations),
-         charlist_with_pos <- string |> String.to_charlist() |> Enum.with_index(1) do
+         charlist_with_pos <- string |> to_charlist() |> Enum.with_index(1) do
       do_annotate(charlist_with_pos, anns)
     else
       {:error, validation_issues} -> {:error, validation_issues}
@@ -147,21 +147,21 @@ defmodule Highlighter.Annotations do
     # 1. opening tags
     current_open_anns = Enum.filter(anns, &starts_here?(&1, char_pos))
     current_open_tags_str = open_tags_starting_here(anns, char_pos)
-    current_open_tags_charlist = String.to_charlist(current_open_tags_str)
+    current_open_tags_charlist = to_charlist(current_open_tags_str)
 
     updated_open_anns = MapSet.union(open, MapSet.new(current_open_anns))
     updated_open_anns_list = MapSet.to_list(updated_open_anns)
 
     close_anns = Enum.filter(updated_open_anns_list, &ends_here?(&1, char_pos))
     close_tags_str = close_all(close_anns)
-    close_tags_charlist = String.to_charlist(close_tags_str)
+    close_tags_charlist = to_charlist(close_tags_str)
 
     min_start = find_min_start_pos(updated_open_anns_list)
     overlaps = Enum.filter(updated_open_anns_list, &(&1.start_pos > min_start))
     overlaps_close_tags_str = close_all(overlaps)
-    overlaps_close_tags_charlist = String.to_charlist(overlaps_close_tags_str)
+    overlaps_close_tags_charlist = to_charlist(overlaps_close_tags_str)
     overlaps_open_tags_str = open_all(overlaps)
-    overlaps_open_tags_charlist = String.to_charlist(overlaps_open_tags_str)
+    overlaps_open_tags_charlist = to_charlist(overlaps_open_tags_str)
 
     current_out = [
       current_open_tags_charlist,
