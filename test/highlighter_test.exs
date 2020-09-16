@@ -116,17 +116,18 @@ defmodule HighlighterTest do
     end
   end
 
-  # describe "ends_after?/2" do
-  #   test "returns true if the annotation ends immediately after the position arg" do
-  #     annotation = %Annotation{start_pos: 2, end_pos: 3, open: "<dog>", close: "</dog>"}
-  #     assert Annotations.ends_after?(annotation, 2)
-  #   end
+  describe "ends_after?/2" do
+    test "returns true if the annotation ends immediately at the position arg" do
+      annotation = %Annotation{start_pos: 2, end_pos: 3, open: "<dog>", close: "</dog>"}
+      assert Annotations.ends_after?(annotation, 3)
+    end
 
-  #   test "returns false if the annoation end is not immediately after the position arg" do
-  #     annotation = %Annotation{start_pos: 2, end_pos: 3, open: "<dog>", close: "</dog>"}
-  #     refute Annotations.ends_after?(annotation, 3)
-  #   end
-  # end
+    test "returns false if the annoation end is not immediately at the position arg" do
+      annotation = %Annotation{start_pos: 2, end_pos: 3, open: "<dog>", close: "</dog>"}
+      refute Annotations.ends_after?(annotation, 2)
+      refute Annotations.ends_after?(annotation, 4)
+    end
+  end
 
   describe "find_min_start_pos/1" do
     test "returns the lowest start position given a list of annotations" do
@@ -168,33 +169,33 @@ defmodule HighlighterTest do
     end
   end
 
-  # describe "filter_ends_after/2" do
-  #   setup do
-  #     dog_ann = %Annotation{start_pos: 1, end_pos: 3, open: "<dog>", close: "</dog>"}
-  #     koala_ann = %Annotation{start_pos: 9, end_pos: 13, open: "<koala>", close: "</koala>"}
-  #     cat_ann = %Annotation{start_pos: 5, end_pos: 7, open: "<cat>", close: "</cat>"}
+  describe "filter_ends_after/2" do
+    setup do
+      dog_ann = %Annotation{start_pos: 1, end_pos: 3, open: "<dog>", close: "</dog>"}
+      koala_ann = %Annotation{start_pos: 9, end_pos: 13, open: "<koala>", close: "</koala>"}
+      cat_ann = %Annotation{start_pos: 5, end_pos: 7, open: "<cat>", close: "</cat>"}
 
-  #     annotations = [dog_ann, koala_ann, cat_ann]
+      annotations = [dog_ann, koala_ann, cat_ann]
 
-  #     %{dog_ann: dog_ann, koala_ann: koala_ann, cat_ann: cat_ann, annotations: annotations}
-  #   end
+      %{dog_ann: dog_ann, koala_ann: koala_ann, cat_ann: cat_ann, annotations: annotations}
+    end
 
-  #   test "returns a list of annotations which end after the position arg",
-  #        %{annotations: annotations, koala_ann: koala_ann} do
-  #     assert Annotations.filter_ends_after(annotations, 12) == [koala_ann]
-  #     assert Annotations.filter_ends_after(annotations, 13) == []
-  #   end
+    test "returns a list of annotations which end at the position arg",
+         %{annotations: annotations, koala_ann: koala_ann} do
+      assert Annotations.filter_ends_after(annotations, 13) == [koala_ann]
+      assert Annotations.filter_ends_after(annotations, 14) == []
+    end
 
-  #   test "returns an empty list when no annotations end after the position arg",
-  #        %{annotations: annotations} do
-  #     assert Annotations.filter_ends_after(annotations, 13) == []
-  #   end
+    test "returns an empty list when no annotations end at the position arg",
+         %{annotations: annotations} do
+      assert Annotations.filter_ends_after(annotations, 14) == []
+    end
 
-  #   test "returns an empty list when the list of annotations is also empty" do
-  #     assert Annotations.filter_ends_after([], 0) == []
-  #     assert Annotations.filter_ends_after([], 13) == []
-  #   end
-  # end
+    test "returns an empty list when the list of annotations is also empty" do
+      assert Annotations.filter_ends_after([], 0) == []
+      assert Annotations.filter_ends_after([], 13) == []
+    end
+  end
 
   describe "validate/2" do
     test "returns ok tuple with annotations if all are valid" do

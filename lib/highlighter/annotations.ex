@@ -174,8 +174,6 @@ defmodule Highlighter.Annotations do
       | out
     ]
 
-    # |> IO.inspect(label: "updated_out")
-
     updated_open_anns = MapSet.difference(updated_open_anns, MapSet.new(close_anns))
 
     updated_anns =
