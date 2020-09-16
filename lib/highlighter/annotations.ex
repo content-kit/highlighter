@@ -163,16 +163,15 @@ defmodule Highlighter.Annotations do
     overlaps_open_tags_str = open_all(overlaps)
     overlaps_open_tags_charlist = String.to_charlist(overlaps_open_tags_str)
 
-    updated_out = [
-      [
-        current_open_tags_charlist,
-        [char_int],
-        overlaps_close_tags_charlist,
-        close_tags_charlist,
-        overlaps_open_tags_charlist
-      ]
-      | out
+    current_out = [
+      current_open_tags_charlist,
+      [char_int],
+      overlaps_close_tags_charlist,
+      close_tags_charlist,
+      overlaps_open_tags_charlist
     ]
+
+    updated_out = [current_out | out]
 
     updated_open_anns = MapSet.difference(updated_open_anns, MapSet.new(close_anns))
 
