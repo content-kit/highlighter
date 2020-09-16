@@ -116,16 +116,16 @@ defmodule HighlighterTest do
     end
   end
 
-  describe "ends_after?/2" do
+  describe "ends_here?/2" do
     test "returns true if the annotation ends immediately at the position arg" do
       annotation = %Annotation{start_pos: 2, end_pos: 3, open: "<dog>", close: "</dog>"}
-      assert Annotations.ends_after?(annotation, 3)
+      assert Annotations.ends_here?(annotation, 3)
     end
 
     test "returns false if the annoation end is not immediately at the position arg" do
       annotation = %Annotation{start_pos: 2, end_pos: 3, open: "<dog>", close: "</dog>"}
-      refute Annotations.ends_after?(annotation, 2)
-      refute Annotations.ends_after?(annotation, 4)
+      refute Annotations.ends_here?(annotation, 2)
+      refute Annotations.ends_here?(annotation, 4)
     end
   end
 
@@ -169,7 +169,7 @@ defmodule HighlighterTest do
     end
   end
 
-  describe "filter_ends_after/2" do
+  describe "filter_ends_here/2" do
     setup do
       dog_ann = %Annotation{start_pos: 1, end_pos: 3, open: "<dog>", close: "</dog>"}
       koala_ann = %Annotation{start_pos: 9, end_pos: 13, open: "<koala>", close: "</koala>"}
@@ -182,18 +182,18 @@ defmodule HighlighterTest do
 
     test "returns a list of annotations which end at the position arg",
          %{annotations: annotations, koala_ann: koala_ann} do
-      assert Annotations.filter_ends_after(annotations, 13) == [koala_ann]
-      assert Annotations.filter_ends_after(annotations, 14) == []
+      assert Annotations.filter_ends_here(annotations, 13) == [koala_ann]
+      assert Annotations.filter_ends_here(annotations, 14) == []
     end
 
     test "returns an empty list when no annotations end at the position arg",
          %{annotations: annotations} do
-      assert Annotations.filter_ends_after(annotations, 14) == []
+      assert Annotations.filter_ends_here(annotations, 14) == []
     end
 
     test "returns an empty list when the list of annotations is also empty" do
-      assert Annotations.filter_ends_after([], 0) == []
-      assert Annotations.filter_ends_after([], 13) == []
+      assert Annotations.filter_ends_here([], 0) == []
+      assert Annotations.filter_ends_here([], 13) == []
     end
   end
 

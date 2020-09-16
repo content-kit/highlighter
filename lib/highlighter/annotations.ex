@@ -57,8 +57,8 @@ defmodule Highlighter.Annotations do
   def starts_after?(%Annotation{start_pos: start_pos}, pos) when start_pos > pos, do: true
   def starts_after?(_ann, _pos), do: false
 
-  def ends_after?(%Annotation{end_pos: end_pos}, pos) when pos == end_pos, do: true
-  def ends_after?(_ann, _pos), do: false
+  def ends_here?(%Annotation{end_pos: end_pos}, pos) when pos == end_pos, do: true
+  def ends_here?(_ann, _pos), do: false
 
   def sort(annotations) when is_list(annotations) do
     annotations
@@ -102,8 +102,8 @@ defmodule Highlighter.Annotations do
     |> Enum.join("")
   end
 
-  def filter_ends_after(annotations, pos) when is_list(annotations) do
-    Enum.filter(annotations, &ends_after?(&1, pos))
+  def filter_ends_here(annotations, pos) when is_list(annotations) do
+    Enum.filter(annotations, &ends_here?(&1, pos))
   end
 
   def open_tags_starting_here(annotations, pos) when is_list(annotations) do
@@ -152,7 +152,7 @@ defmodule Highlighter.Annotations do
     updated_open_anns = MapSet.union(open, MapSet.new(current_open_anns))
     updated_open_anns_list = MapSet.to_list(updated_open_anns)
 
-    close_anns = Enum.filter(updated_open_anns_list, &ends_after?(&1, char_pos))
+    close_anns = Enum.filter(updated_open_anns_list, &ends_here?(&1, char_pos))
     close_tags_str = close_all(close_anns)
     close_tags_charlist = String.to_charlist(close_tags_str)
 
