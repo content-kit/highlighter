@@ -4,56 +4,82 @@ defmodule HighlighterTest do
 
   alias Highlighter.{Annotation, Annotations}
 
-  describe "sorting" do
-    test "sorts by starting position" do
+  describe "sort/1" do
+    test "sorts by start_pos" do
       # "dog cat koala" => "<dog>dog</dog> <cat>cat</cat> <koala>koala</koala>
       annotations = [
-        %Annotation{start: 9, finish: 13, left: "<koala>", right: "</koala>"},
-        %Annotation{start: 1, finish: 3, left: "<dog>", right: "</dog>"},
-        %Annotation{start: 5, finish: 7, left: "<cat>", right: "</cat>"}
+        %Annotation{start_pos: 9, end_pos: 13, open: "<koala>", close: "</koala>"},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<dog>", close: "</dog>"},
+        %Annotation{start_pos: 5, end_pos: 7, open: "<cat>", close: "</cat>"}
       ]
 
       sorted = Annotations.sort(annotations)
 
       assert sorted == [
-               %Annotation{start: 1, finish: 3, left: "<dog>", right: "</dog>"},
-               %Annotation{start: 5, finish: 7, left: "<cat>", right: "</cat>"},
-               %Annotation{start: 9, finish: 13, left: "<koala>", right: "</koala>"}
+               %Annotation{start_pos: 1, end_pos: 3, open: "<dog>", close: "</dog>", idx: 0},
+               %Annotation{start_pos: 5, end_pos: 7, open: "<cat>", close: "</cat>", idx: 1},
+               %Annotation{start_pos: 9, end_pos: 13, open: "<koala>", close: "</koala>", idx: 2}
              ]
     end
 
     test "breaks ties by preferring longer matches" do
       annotations = [
-        %Annotation{start: 1, finish: 3, left: "<x>", right: "</x>"},
-        %Annotation{start: 1, finish: 5, left: "<z>", right: "</z>"},
-        %Annotation{start: 1, finish: 4, left: "<y>", right: "</y>"}
+        %Annotation{start_pos: 1, end_pos: 3, open: "<x>", close: "</x>"},
+        %Annotation{start_pos: 1, end_pos: 5, open: "<z>", close: "</z>"},
+        %Annotation{start_pos: 1, end_pos: 4, open: "<y>", close: "</y>"}
       ]
 
       sorted = Annotations.sort(annotations)
 
       assert sorted == [
-               %Annotation{start: 1, finish: 5, left: "<z>", right: "</z>"},
-               %Annotation{start: 1, finish: 4, left: "<y>", right: "</y>"},
-               %Annotation{start: 1, finish: 3, left: "<x>", right: "</x>"}
+               %Annotation{start_pos: 1, end_pos: 5, open: "<z>", close: "</z>", idx: 0},
+               %Annotation{start_pos: 1, end_pos: 4, open: "<y>", close: "</y>", idx: 1},
+               %Annotation{start_pos: 1, end_pos: 3, open: "<x>", close: "</x>", idx: 2}
              ]
     end
 
     test "same range with want_inner specified" do
       annotations = [
-        %Annotation{start: 1, finish: 3, left: "<x>", right: "</x>"},
-        %Annotation{start: 1, finish: 3, left: "<z>", right: "</z>", want_inner: 2},
-        %Annotation{start: 1, finish: 3, left: "<q>", right: "</q>", want_inner: -1},
-        %Annotation{start: 1, finish: 3, left: "<y>", right: "</y>", want_inner: 1}
+        %Annotation{start_pos: 1, end_pos: 3, open: "<x>", close: "</x>", idx: 0},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<z>", close: "</z>", want_inner: 2, idx: 1},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<q>", close: "</q>", want_inner: -1, idx: 2},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<y>", close: "</y>", want_inner: 1, idx: 3}
       ]
 
       sorted = Annotations.sort(annotations)
 
-      assert sorted == [
-               %Annotation{start: 1, finish: 3, left: "<q>", right: "</q>", want_inner: -1},
-               %Annotation{start: 1, finish: 3, left: "<x>", right: "</x>"},
-               %Annotation{start: 1, finish: 3, left: "<y>", right: "</y>", want_inner: 1},
-               %Annotation{start: 1, finish: 3, left: "<z>", right: "</z>", want_inner: 2}
-             ]
+      expected = [
+        %Annotation{start_pos: 1, end_pos: 3, open: "<q>", close: "</q>", want_inner: -1, idx: 0},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<x>", close: "</x>", idx: 1},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<y>", close: "</y>", want_inner: 1, idx: 2},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<z>", close: "</z>", want_inner: 2, idx: 3}
+      ]
+
+      assert sorted == expected
     end
   end
+
+  describe "open_tag/1" do
+    test "returns the opening tag" do
+      annotation = %Annotation{open: "<a>", close: "</a>"}
+      assert Annotations.open_tag(annotation) == "<a>"
+    end
+  end
+
+  describe "close_tag/1" do
+    test "returns the closing tag" do
+      annotation = %Annotation{open: "<a>", close: "</a>"}
+      assert Annotations.close_tag(annotation) == "</a>"
+    end
+  end
+
+  # describe "annotate/2" do
+  #   test "one annotation" do
+  #     dog_annotation = %Annotation{start_pos: 1, end_pos: 3, open: "<woof>", close: "</woof>"}
+
+  #     annotated = Annotations.annotate("dog", List.wrap(dog_annotation))
+
+  #     assert annotated == "<woof>dog</woof>"
+  #   end
+  # end
 end
