@@ -301,5 +301,20 @@ defmodule HighlighterTest do
       refute annotated == unexpected_non_overlapping
       assert annotated == expected_overlapping
     end
+
+    test "overlapping annotations (simple, double)" do
+      annotations = [
+        %Annotation{start_pos: 1, end_pos: 2, open: "<X1>", close: "</X1>", want_inner: -1},
+        %Annotation{start_pos: 1, end_pos: 2, open: "<X2>", close: "</X2>"},
+        %Annotation{start_pos: 2, end_pos: 3, open: "<Y1>", close: "</Y1>", want_inner: -1},
+        %Annotation{start_pos: 2, end_pos: 3, open: "<Y2>", close: "</Y2>"}
+      ]
+
+      annotated = Annotations.annotate("abc", annotations)
+
+      expected = "<X1><X2>a<Y1><Y2>b</Y2></Y1></X2></X1><Y1><Y2>c</Y2></Y1>"
+
+      assert annotated == expected
+    end
   end
 end
