@@ -1,6 +1,10 @@
 defmodule Highlighter.Annotations do
   alias Highlighter.Annotation
 
+  @start_pos_oob_err :start_pos_out_of_bounds
+  @end_pos_oob_err :end_pos_out_of_bounds
+  @both_pos_oob_err :start_and_end_pos_out_of_bounds
+
   def validate(annotations, string) when is_list(annotations) and is_binary(string) do
     with string_length <- String.length(string),
          anns_start_pos_oob <- Enum.filter(annotations, &start_pos_oob?(&1, string_length)),
@@ -8,10 +12,9 @@ defmodule Highlighter.Annotations do
          both_pos_oob <- in_both(annotations, anns_end_pos_oob, anns_start_pos_oob),
          anns_start_pos_oob <- reject_in(anns_start_pos_oob, both_pos_oob),
          anns_end_pos_oob <- reject_in(anns_end_pos_oob, both_pos_oob),
-         anns_start_pos_oob <- Enum.map(anns_start_pos_oob, &{:start_pos_out_of_bounds, &1}),
-         anns_end_pos_oob <- Enum.map(anns_end_pos_oob, &{:end_pos_out_of_bounds, &1}),
-         both_oob_err <- :start_and_end_pos_out_of_bounds,
-         both_pos_oob <- Enum.map(both_pos_oob, &{both_oob_err, &1}),
+         anns_start_pos_oob <- Enum.map(anns_start_pos_oob, &{@start_pos_oob_err, &1}),
+         anns_end_pos_oob <- Enum.map(anns_end_pos_oob, &{@end_pos_oob_err, &1}),
+         both_pos_oob <- Enum.map(both_pos_oob, &{@both_pos_oob_err, &1}),
          all_invalid_annotations <- anns_start_pos_oob ++ anns_end_pos_oob ++ both_pos_oob do
       if Enum.empty?(all_invalid_annotations) do
         {:ok, annotations}
@@ -85,12 +88,27 @@ defmodule Highlighter.Annotations do
     sorted_annotations
     |> Enum.sort_by(&Map.get(&1, :idx), &<=/2)
     |> Enum.reverse()
-    |> Enum.map(&Map.get(&1, :close))
+    |> Enum.map(&close_tag/1)
     |> Enum.join("")
   end
 
   def filter_ends_after(annotations, pos) when is_list(annotations) do
     Enum.filter(annotations, &ends_after?(&1, pos))
+  end
+
+  def open_tags_starting_here(annotations, pos) when is_list(annotations) do
+    annotations
+    |> Enum.filter(&(starts_here?(&1, pos) or starts_and_ends_here?(&1, pos)))
+    |> Enum.map(&open_and_maybe_close_tag(&1, pos))
+    |> Enum.join("")
+  end
+
+  defp open_and_maybe_close_tag(%Annotation{} = annotation, pos) do
+    if starts_and_ends_here?(annotation, pos) do
+      open_tag(annotation) <> close_tag(annotation)
+    else
+      open_tag(annotation)
+    end
   end
 
   # def annotate(string, annotations) when is_binary(string) and is_list(annotations) do

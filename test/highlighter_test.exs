@@ -211,6 +211,37 @@ defmodule HighlighterTest do
     end
   end
 
+  describe "open_tags_starting_here/2" do
+    test "opens (and immediately closes zero-length) tags starting at the position arg" do
+      ann1 = %Annotation{start_pos: 4, end_pos: 5, open: "<1>", close: "</1>"}
+      ann2 = %Annotation{start_pos: 1, end_pos: 4, open: "<2>", close: "</2>"}
+      ann3 = %Annotation{start_pos: 0, end_pos: 2, open: "<3>", close: "</3>"}
+      ann4 = %Annotation{start_pos: 4, end_pos: 4, open: "<4>", close: "</4>"}
+
+      annotations = Annotations.sort([ann1, ann2, ann3, ann4])
+
+      assert Annotations.open_tags_starting_here(annotations, 4) == "<1><4></4>"
+    end
+
+    test "returns empty string for empty list of annotations" do
+      assert Annotations.open_tags_starting_here([], 0) == ""
+    end
+
+    test "returns empty string if no annotations start at position arg" do
+      ann1 = %Annotation{start_pos: 4, end_pos: 5, open: "<nope>", close: "</nope>"}
+      ann2 = %Annotation{start_pos: 1, end_pos: 4, open: "<nope>", close: "</nope>"}
+      ann3 = %Annotation{start_pos: 0, end_pos: 2, open: "<nope>", close: "</nope>"}
+
+      annotations = Annotations.sort([ann1, ann2, ann3, ann3])
+
+      refute Annotations.open_tags_starting_here(annotations, 1) == ""
+      assert Annotations.open_tags_starting_here(annotations, 2) == ""
+      assert Annotations.open_tags_starting_here(annotations, 3) == ""
+      refute Annotations.open_tags_starting_here(annotations, 4) == ""
+      assert Annotations.open_tags_starting_here(annotations, 5) == ""
+    end
+  end
+
   # describe "annotate/2" do
   #   test "one annotation" do
   #     dog_annotation = %Annotation{start_pos: 1, end_pos: 3, open: "<woof>", close: "</woof>"}
