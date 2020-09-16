@@ -250,7 +250,7 @@ defmodule HighlighterTest do
   end
 
   describe "open_tags_starting_here/2" do
-    test "opens (and immediately closes zero-length) tags starting at the position arg" do
+    test "opens  tags starting at the position arg" do
       ann1 = %Annotation{start_pos: 4, end_pos: 5, open: "<1>", close: "</1>"}
       ann2 = %Annotation{start_pos: 1, end_pos: 4, open: "<2>", close: "</2>"}
       ann3 = %Annotation{start_pos: 0, end_pos: 2, open: "<3>", close: "</3>"}
@@ -258,7 +258,7 @@ defmodule HighlighterTest do
 
       annotations = Annotations.sort([ann1, ann2, ann3, ann4])
 
-      assert Annotations.open_tags_starting_here(annotations, 4) == "<1><4></4>"
+      assert Annotations.open_tags_starting_here(annotations, 4) == "<1><4>"
     end
 
     test "returns empty string for empty list of annotations" do
@@ -281,6 +281,45 @@ defmodule HighlighterTest do
   end
 
   describe "annotate/2" do
+    test "empty annotations" do
+      annotations = [%Annotation{}, %Annotation{}, %Annotation{}]
+
+      assert {:error, issues} = Annotations.annotate("dog", annotations)
+      assert Enum.count(issues) == 3
+    end
+
+    test "misc invalid annotations" do
+      annotations = [
+        %Annotation{start_pos: -1},
+        %Annotation{end_pos: 5},
+        %Annotation{start_pos: -1, end_pos: 5}
+      ]
+
+      assert {:error, issues} = Annotations.annotate("dog", annotations)
+      assert Enum.count(issues) == 3
+    end
+
+    test "blank string, no annotations" do
+      assert Annotations.annotate("", []) == ""
+    end
+
+    test "blank string, 1 annotation" do
+      annotations = [%Annotation{start_pos: 1, end_pos: 1}]
+      {:error, [issue]} = Annotations.annotate("", annotations)
+      assert {:start_and_end_pos_out_of_bounds, _} = issue
+    end
+
+    test "annotations starting and ending at the same position" do
+      annotations = [
+        %Annotation{start_pos: 1, end_pos: 1, open: "<A1>", close: "</A1>"},
+        %Annotation{start_pos: 1, end_pos: 1, open: "<A2>", close: "</A2>"},
+        %Annotation{start_pos: 2, end_pos: 2, open: "<B>", close: "</B>"},
+        %Annotation{start_pos: 3, end_pos: 3, open: "<C>", close: "</C>"}
+      ]
+
+      assert Annotations.annotate("xyz", annotations) == "<A1><A2>x</A2></A1><B>y</B><C>z</C>"
+    end
+
     test "one annotation (simple)" do
       dog_annotation = %Annotation{start_pos: 1, end_pos: 3, open: "<woof>", close: "</woof>"}
 

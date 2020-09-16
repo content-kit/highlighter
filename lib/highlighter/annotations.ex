@@ -122,17 +122,9 @@ defmodule Highlighter.Annotations do
 
   def open_tags_starting_here(annotations, pos) when is_list(annotations) do
     annotations
-    |> Enum.filter(&(starts_here?(&1, pos) or starts_and_ends_here?(&1, pos)))
-    |> Enum.map(&open_and_maybe_close_tag(&1, pos))
+    |> Enum.filter(&starts_here?(&1, pos))
+    |> Enum.map(&open_tag/1)
     |> Enum.join("")
-  end
-
-  defp open_and_maybe_close_tag(%Annotation{} = annotation, pos) do
-    if starts_and_ends_here?(annotation, pos) do
-      open_tag(annotation) <> close_tag(annotation)
-    else
-      open_tag(annotation)
-    end
   end
 
   def annotate(string, annotations) when is_binary(string) and is_list(annotations) do
