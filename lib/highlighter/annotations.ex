@@ -6,22 +6,27 @@ defmodule Highlighter.Annotations do
   @both_pos_oob_err :start_and_end_pos_out_of_bounds
 
   def validate(annotations, string) when is_list(annotations) and is_binary(string) do
-    with string_length <- String.length(string),
-         anns_start_pos_oob <- Enum.filter(annotations, &start_pos_oob?(&1, string_length)),
-         anns_end_pos_oob <- Enum.filter(annotations, &end_pos_oob?(&1, string_length)),
-         both_pos_oob <- in_both(annotations, anns_end_pos_oob, anns_start_pos_oob),
-         anns_start_pos_oob <- reject_in(anns_start_pos_oob, both_pos_oob),
-         anns_end_pos_oob <- reject_in(anns_end_pos_oob, both_pos_oob),
-         anns_start_pos_oob <- Enum.map(anns_start_pos_oob, &{@start_pos_oob_err, &1}),
-         anns_end_pos_oob <- Enum.map(anns_end_pos_oob, &{@end_pos_oob_err, &1}),
-         both_pos_oob <- Enum.map(both_pos_oob, &{@both_pos_oob_err, &1}),
-         all_invalid_annotations <- anns_start_pos_oob ++ anns_end_pos_oob ++ both_pos_oob do
-      if Enum.empty?(all_invalid_annotations) do
-        {:ok, annotations}
-      else
-        {:error, all_invalid_annotations}
-      end
+    all_invalid_annotations = do_validate(annotations, string)
+
+    if Enum.empty?(all_invalid_annotations) do
+      {:ok, annotations}
+    else
+      {:error, all_invalid_annotations}
     end
+  end
+
+  defp do_validate(annotations, string) do
+    string_length = String.length(string)
+    anns_start_pos_oob = Enum.filter(annotations, &start_pos_oob?(&1, string_length))
+    anns_end_pos_oob = Enum.filter(annotations, &end_pos_oob?(&1, string_length))
+    both_pos_oob = in_both(annotations, anns_end_pos_oob, anns_start_pos_oob)
+    anns_start_pos_oob = reject_in(anns_start_pos_oob, both_pos_oob)
+    anns_end_pos_oob = reject_in(anns_end_pos_oob, both_pos_oob)
+    anns_start_pos_oob = Enum.map(anns_start_pos_oob, &{@start_pos_oob_err, &1})
+    anns_end_pos_oob = Enum.map(anns_end_pos_oob, &{@end_pos_oob_err, &1})
+    both_pos_oob = Enum.map(both_pos_oob, &{@both_pos_oob_err, &1})
+
+    anns_start_pos_oob ++ anns_end_pos_oob ++ both_pos_oob
   end
 
   defp end_pos_oob?(%Annotation{end_pos: end_pos}, string_len) when end_pos > string_len, do: true
