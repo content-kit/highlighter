@@ -60,18 +60,27 @@ defmodule Highlighter.Annotations do
   def ends_here?(%Annotation{end_pos: end_pos}, pos) when pos == end_pos, do: true
   def ends_here?(_ann, _pos), do: false
 
-  def sort(annotations) when is_list(annotations) do
+  def sort([]), do: []
+
+  # If idx is -1, then the list has not been sorted before
+  def sort([%Annotation{idx: -1} | _] = annotations) when is_list(annotations) do
     annotations
+    |> Enum.reverse()
     |> Enum.sort(&sort/2)
     |> Enum.with_index()
     |> Enum.map(fn {ann, idx} -> Map.put(ann, :idx, idx) end)
+  end
+
+  # If idx is not -1, then it was sorted previously and assigned indx values - sort by idx again
+  def sort([%Annotation{idx: idx} | _] = annotations) when idx > -1 and is_list(annotations) do
+    Enum.sort_by(annotations, &Map.get(&1, :idx), &<=/2)
   end
 
   # Sort by start_pos, breaking ties by preferring longer matches
   def sort(%Annotation{} = left, %Annotation{} = right) do
     cond do
       left.start_pos == right.start_pos && left.end_pos == right.end_pos ->
-        left.want_inner < right.want_inner
+        left.depth < right.depth
 
       left.start_pos == right.start_pos ->
         left.end_pos > right.end_pos

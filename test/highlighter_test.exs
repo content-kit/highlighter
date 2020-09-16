@@ -5,6 +5,10 @@ defmodule HighlighterTest do
   alias Highlighter.{Annotation, Annotations}
 
   describe "sort/1" do
+    test "empty list returns empty list" do
+      assert Annotations.sort([]) == []
+    end
+
     test "sorts by start_pos" do
       # "dog cat koala" => "<dog>dog</dog> <cat>cat</cat> <koala>koala</koala>
       annotations = [
@@ -38,21 +42,41 @@ defmodule HighlighterTest do
              ]
     end
 
-    test "same range with want_inner specified" do
+    test "same range with depth specified" do
       annotations = [
-        %Annotation{start_pos: 1, end_pos: 3, open: "<x>", close: "</x>", idx: 0},
-        %Annotation{start_pos: 1, end_pos: 3, open: "<z>", close: "</z>", want_inner: 2, idx: 1},
-        %Annotation{start_pos: 1, end_pos: 3, open: "<q>", close: "</q>", want_inner: -1, idx: 2},
-        %Annotation{start_pos: 1, end_pos: 3, open: "<y>", close: "</y>", want_inner: 1, idx: 3}
+        %Annotation{start_pos: 1, end_pos: 3, open: "<x>", close: "</x>"},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<z>", close: "</z>", depth: 3},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<q>", close: "</q>", depth: 1},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<y>", close: "</y>", depth: 2}
       ]
 
       sorted = Annotations.sort(annotations)
 
       expected = [
-        %Annotation{start_pos: 1, end_pos: 3, open: "<q>", close: "</q>", want_inner: -1, idx: 0},
-        %Annotation{start_pos: 1, end_pos: 3, open: "<x>", close: "</x>", idx: 1},
-        %Annotation{start_pos: 1, end_pos: 3, open: "<y>", close: "</y>", want_inner: 1, idx: 2},
-        %Annotation{start_pos: 1, end_pos: 3, open: "<z>", close: "</z>", want_inner: 2, idx: 3}
+        %Annotation{start_pos: 1, end_pos: 3, open: "<x>", close: "</x>", depth: 0, idx: 0},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<q>", close: "</q>", depth: 1, idx: 1},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<y>", close: "</y>", depth: 2, idx: 2},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<z>", close: "</z>", depth: 3, idx: 3}
+      ]
+
+      assert sorted == expected
+    end
+
+    test "if list has already been sorted (has idx which is not minus 1) it reorders by idx" do
+      annotations = [
+        %Annotation{start_pos: 1, end_pos: 3, open: "<q>", close: "</q>", depth: 1, idx: 1},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<x>", close: "</x>", depth: 0, idx: 0},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<z>", close: "</z>", depth: 3, idx: 3},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<y>", close: "</y>", depth: 2, idx: 2}
+      ]
+
+      sorted = Annotations.sort(annotations)
+
+      expected = [
+        %Annotation{start_pos: 1, end_pos: 3, open: "<x>", close: "</x>", depth: 0, idx: 0},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<q>", close: "</q>", depth: 1, idx: 1},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<y>", close: "</y>", depth: 2, idx: 2},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<z>", close: "</z>", depth: 3, idx: 3}
       ]
 
       assert sorted == expected
@@ -304,9 +328,9 @@ defmodule HighlighterTest do
 
     test "overlapping annotations (simple, double)" do
       annotations = [
-        %Annotation{start_pos: 1, end_pos: 2, open: "<X1>", close: "</X1>", want_inner: -1},
+        %Annotation{start_pos: 1, end_pos: 2, open: "<X1>", close: "</X1>"},
         %Annotation{start_pos: 1, end_pos: 2, open: "<X2>", close: "</X2>"},
-        %Annotation{start_pos: 2, end_pos: 3, open: "<Y1>", close: "</Y1>", want_inner: -1},
+        %Annotation{start_pos: 2, end_pos: 3, open: "<Y1>", close: "</Y1>"},
         %Annotation{start_pos: 2, end_pos: 3, open: "<Y2>", close: "</Y2>"}
       ]
 
