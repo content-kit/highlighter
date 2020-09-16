@@ -54,6 +54,9 @@ defmodule Highlighter.Annotations do
     start_pos == end_pos && end_pos == pos
   end
 
+  def starts_after?(%Annotation{start_pos: start_pos}, pos) when start_pos > pos, do: true
+  def starts_after?(_ann, _pos), do: false
+
   def ends_after?(%Annotation{end_pos: end_pos}, pos) when pos + 1 == end_pos, do: true
   def ends_after?(_ann, _pos), do: false
 
@@ -92,6 +95,13 @@ defmodule Highlighter.Annotations do
     |> Enum.join("")
   end
 
+  def open_all(sorted_annotations) when is_list(sorted_annotations) do
+    sorted_annotations
+    |> Enum.sort_by(&Map.get(&1, :idx), &<=/2)
+    |> Enum.map(&open_tag/1)
+    |> Enum.join("")
+  end
+
   def filter_ends_after(annotations, pos) when is_list(annotations) do
     Enum.filter(annotations, &ends_after?(&1, pos))
   end
@@ -113,27 +123,69 @@ defmodule Highlighter.Annotations do
 
   def annotate(string, annotations) when is_binary(string) and is_list(annotations) do
     with {:ok, annotations} <- validate(annotations, string),
-         sorted_anns <- sort(annotations),
+         anns <- sort(annotations),
          charlist_with_pos <- string |> String.to_charlist() |> Enum.with_index(1) do
-      do_annotate(charlist_with_pos, sorted_anns)
+      do_annotate(charlist_with_pos, anns)
     else
       {:error, validation_issues} -> {:error, validation_issues}
     end
   end
 
-  defp do_annotate(charlist_with_pos, sorted_anns)
-       when is_list(charlist_with_pos) and is_list(sorted_anns) do
+  defp do_annotate(charlist_with_pos, anns)
+       when is_list(charlist_with_pos) and is_list(anns) do
     charlist_with_pos
-    |> Enum.map(&do_annotate(&1, sorted_anns))
+    |> Enum.reduce(%{open: MapSet.new(), out: [], anns: anns}, &do_annotate(&1, &2))
+    |> Map.get(:out)
+    |> Enum.reverse()
     |> List.to_string()
   end
 
-  defp do_annotate({char_int, char_pos}, sorted_anns) when is_list(sorted_anns) do
-    open_tags_str = open_tags_starting_here(sorted_anns, char_pos)
+  defp do_annotate({char_int, char_pos}, %{open: open, out: out, anns: anns})
+       when is_list(anns) do
+    # 1. opening tags
+    open_anns = Enum.filter(anns, &starts_here?(&1, char_pos))
+    open_tags_str = open_tags_starting_here(anns, char_pos)
     open_tags_charlist = String.to_charlist(open_tags_str)
-    anns_ends_after = filter_ends_after(sorted_anns, char_pos - 1)
-    close_tags_charlist = close_all(anns_ends_after)
 
-    open_tags_charlist ++ [char_int] ++ close_tags_charlist
+    updated_open = MapSet.put(open, open_anns)
+    updated_open_list = MapSet.to_list(updated_open)
+
+    # 2. find tags that actually end here
+    anns_actually_end_here = filter_ends_after(anns, char_pos - 1)
+
+    # 3. find overlaps (i.e. overlapping with tags that actually end here)
+    min_start_pos_anns_actually_end_here = find_min_start_pos(anns_actually_end_here)
+
+    overlap_anns =
+      Enum.filter(updated_open_list, &starts_after?(&1, min_start_pos_anns_actually_end_here))
+
+    updated_open = Enum.reduce(overlap_anns, updated_open, &MapSet.delete(&2, &1))
+
+    # 4. close tags of overlaps
+    close_tags_of_overlaps = close_all(overlap_anns)
+
+    # 5. close tags that actually end here
+    close_tags_actually_ending_here = close_all(anns_actually_end_here)
+
+    # 6. re-open tags of overlaps
+    open_tags_of_overlaps = open_all(overlap_anns)
+
+    this_loop_out = [
+      open_tags_charlist,
+      char_int,
+      close_tags_of_overlaps,
+      close_tags_actually_ending_here,
+      open_tags_of_overlaps
+    ]
+
+    updated_out = [this_loop_out | out]
+
+    updated_anns = MapSet.difference(MapSet.new(anns), updated_open) |> MapSet.to_list()
+
+    %{
+      out: updated_out,
+      open: updated_open,
+      anns: updated_anns
+    }
   end
 end

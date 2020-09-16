@@ -103,6 +103,19 @@ defmodule HighlighterTest do
     end
   end
 
+  describe "starts_after?/2" do
+    test "returns true if the annotation start position is after the position arg" do
+      annotation = %Annotation{start_pos: 2, end_pos: 6, open: "<dog>", close: "</dog>"}
+      assert Annotations.starts_after?(annotation, 1)
+    end
+
+    test "returns false if the annotation start position is not after the position arg" do
+      annotation = %Annotation{start_pos: 3, end_pos: 6, open: "<dog>", close: "</dog>"}
+      refute Annotations.starts_after?(annotation, 3)
+      refute Annotations.starts_after?(annotation, 4)
+    end
+  end
+
   describe "ends_after?/2" do
     test "returns true if the annotation ends immediately after the position arg" do
       annotation = %Annotation{start_pos: 2, end_pos: 3, open: "<dog>", close: "</dog>"}
@@ -271,6 +284,21 @@ defmodule HighlighterTest do
       annotated = Annotations.annotate("dog and cat and cow", annotations)
 
       assert annotated == "<woof>dog</woof> and <meow>cat</meow> and <moo>cow</moo>"
+    end
+
+    test "overlapping annotations (simple)" do
+      annotations = [
+        %Annotation{start_pos: 1, end_pos: 2, open: "<X>", close: "</X>"},
+        %Annotation{start_pos: 2, end_pos: 3, open: "<Y>", close: "</Y>"}
+      ]
+
+      annotated = Annotations.annotate("abc", annotations)
+
+      unexpected_non_overlapping = "<X>a<Y>b</X>c</Y>"
+      expected_overlapping = "<X>a<Y>b</Y></X><Y>c</Y>"
+
+      refute annotated == unexpected_non_overlapping
+      assert annotated == expected_overlapping
     end
   end
 end
