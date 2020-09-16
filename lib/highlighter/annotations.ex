@@ -116,6 +116,8 @@ defmodule Highlighter.Annotations do
          sorted_anns <- sort(annotations),
          charlist_with_pos <- string |> String.to_charlist() |> Enum.with_index(1) do
       do_annotate(charlist_with_pos, sorted_anns)
+    else
+      {:error, validation_issues} -> {:error, validation_issues}
     end
   end
 
