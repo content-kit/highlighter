@@ -103,6 +103,18 @@ defmodule HighlighterTest do
     end
   end
 
+  describe "ends_after?/2" do
+    test "returns true if the annotation ends immediately after the position arg" do
+      annotation = %Annotation{start_pos: 2, end_pos: 3, open: "<dog>", close: "</dog>"}
+      assert Annotations.ends_after?(annotation, 2)
+    end
+
+    test "returns false if the annoation end is not immediately after the position arg" do
+      annotation = %Annotation{start_pos: 2, end_pos: 3, open: "<dog>", close: "</dog>"}
+      refute Annotations.ends_after?(annotation, 3)
+    end
+  end
+
   # describe "annotate/2" do
   #   test "one annotation" do
   #     dog_annotation = %Annotation{start_pos: 1, end_pos: 3, open: "<woof>", close: "</woof>"}

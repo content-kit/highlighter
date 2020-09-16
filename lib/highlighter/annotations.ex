@@ -11,6 +11,9 @@ defmodule Highlighter.Annotations do
     start_pos == end_pos && end_pos == pos
   end
 
+  def ends_after?(%Annotation{end_pos: end_pos}, pos) when pos + 1 == end_pos, do: true
+  def ends_after?(_ann, _pos), do: false
+
   def sort(annotations) when is_list(annotations) do
     annotations
     |> Enum.sort(&do_sort/2)
