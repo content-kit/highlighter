@@ -41,6 +41,14 @@ defmodule Highlighter.Annotations do
     |> Map.get(:start_pos)
   end
 
+  def close_all(sorted_annotations) when is_list(sorted_annotations) do
+    sorted_annotations
+    |> Enum.sort_by(&Map.get(&1, :idx), &<=/2)
+    |> Enum.reverse()
+    |> Enum.map(&Map.get(&1, :close))
+    |> Enum.join("")
+  end
+
   # def annotate(string, annotations) when is_binary(string) and is_list(annotations) do
   #   sorted_anns = sort(annotations)
   #   charlist_with_pos = string |> String.to_charlist() |> Enum.with_index(1)

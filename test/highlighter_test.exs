@@ -141,6 +141,20 @@ defmodule HighlighterTest do
     end
   end
 
+  describe "close_all/1" do
+    test "closes all annoations in reverse idx order" do
+      annotations = [
+        %Annotation{start_pos: 1, end_pos: 3, open: "<dog>", close: "</dog>"},
+        %Annotation{start_pos: 9, end_pos: 13, open: "<koala>", close: "</koala>"},
+        %Annotation{start_pos: 5, end_pos: 7, open: "<cat>", close: "</cat>"}
+      ]
+
+      sorted_annotations = Annotations.sort(annotations)
+
+      assert Annotations.close_all(sorted_annotations) == "</koala></cat></dog>"
+    end
+  end
+
   # describe "annotate/2" do
   #   test "one annotation" do
   #     dog_annotation = %Annotation{start_pos: 1, end_pos: 3, open: "<woof>", close: "</woof>"}
