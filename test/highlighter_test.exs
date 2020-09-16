@@ -243,12 +243,22 @@ defmodule HighlighterTest do
   end
 
   describe "annotate/2" do
-    test "one annotation" do
+    test "one annotation (simple)" do
       dog_annotation = %Annotation{start_pos: 1, end_pos: 3, open: "<woof>", close: "</woof>"}
 
       annotated = Annotations.annotate("dog", List.wrap(dog_annotation))
 
       assert annotated == "<woof>dog</woof>"
+    end
+
+    test "two annotations (simple)" do
+      dog_annotation = %Annotation{start_pos: 1, end_pos: 3, open: "<woof>", close: "</woof>"}
+      cat_annotation = %Annotation{start_pos: 9, end_pos: 11, open: "<meow>", close: "</meow>"}
+      annotations = [dog_annotation, cat_annotation]
+
+      annotated = Annotations.annotate("dog and cat", annotations)
+
+      assert annotated == "<woof>dog</woof> and <meow>cat</meow>"
     end
   end
 end
