@@ -111,13 +111,27 @@ defmodule Highlighter.Annotations do
     end
   end
 
-  # def annotate(string, annotations) when is_binary(string) and is_list(annotations) do
-  #   sorted_anns = sort(annotations)
-  #   charlist_with_pos = string |> String.to_charlist() |> Enum.with_index(1)
+  def annotate(string, annotations) when is_binary(string) and is_list(annotations) do
+    with {:ok, annotations} <- validate(annotations, string),
+         sorted_anns <- sort(annotations),
+         charlist_with_pos <- string |> String.to_charlist() |> Enum.with_index(1) do
+      do_annotate(charlist_with_pos, sorted_anns)
+    end
+  end
 
-  #   do_annotate(charlist_with_pos, sorted_anns)
-  # end
+  defp do_annotate(charlist_with_pos, sorted_anns)
+       when is_list(charlist_with_pos) and is_list(sorted_anns) do
+    charlist_with_pos
+    |> Enum.map(&do_annotate(&1, sorted_anns))
+    |> List.to_string()
+  end
 
-  # defp do_annotate(charlist_with_pos, sorted_anns) do
-  # end
+  defp do_annotate({char_int, char_pos}, sorted_anns) when is_list(sorted_anns) do
+    open_tags_str = open_tags_starting_here(sorted_anns, char_pos)
+    open_tags_charlist = String.to_charlist(open_tags_str)
+    anns_ends_after = filter_ends_after(sorted_anns, char_pos - 1)
+    close_tags_charlist = close_all(anns_ends_after)
+
+    open_tags_charlist ++ [char_int] ++ close_tags_charlist
+  end
 end
