@@ -115,6 +115,32 @@ defmodule HighlighterTest do
     end
   end
 
+  describe "find_min_start_pos/1" do
+    test "returns the lowest start position given a list of annotations" do
+      annotations = [
+        %Annotation{start_pos: 9, end_pos: 13, open: "<koala>", close: "</koala>"},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<dog>", close: "</dog>"},
+        %Annotation{start_pos: 5, end_pos: 7, open: "<cat>", close: "</cat>"}
+      ]
+
+      assert Annotations.find_min_start_pos(annotations) == 1
+    end
+
+    test "returns the lowest start position given a list of annotations with multiple matches" do
+      annotations = [
+        %Annotation{start_pos: 1, end_pos: 13, open: "<koala>", close: "</koala>"},
+        %Annotation{start_pos: 5, end_pos: 7, open: "<cat>", close: "</cat>"},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<dog>", close: "</dog>"}
+      ]
+
+      assert Annotations.find_min_start_pos(annotations) == 1
+    end
+
+    test "returns zero when list is empty" do
+      assert Annotations.find_min_start_pos([]) == 0
+    end
+  end
+
   # describe "annotate/2" do
   #   test "one annotation" do
   #     dog_annotation = %Annotation{start_pos: 1, end_pos: 3, open: "<woof>", close: "</woof>"}

@@ -16,13 +16,13 @@ defmodule Highlighter.Annotations do
 
   def sort(annotations) when is_list(annotations) do
     annotations
-    |> Enum.sort(&do_sort/2)
+    |> Enum.sort(&sort/2)
     |> Enum.with_index()
     |> Enum.map(fn {ann, idx} -> Map.put(ann, :idx, idx) end)
   end
 
   # Sort by start_pos, breaking ties by preferring longer matches
-  defp do_sort(%Annotation{} = left, %Annotation{} = right) do
+  def sort(%Annotation{} = left, %Annotation{} = right) do
     cond do
       left.start_pos == right.start_pos && left.end_pos == right.end_pos ->
         left.want_inner < right.want_inner
@@ -33,6 +33,12 @@ defmodule Highlighter.Annotations do
       true ->
         left.start_pos < right.start_pos
     end
+  end
+
+  def find_min_start_pos(annotations) when is_list(annotations) do
+    annotations
+    |> Enum.min(&sort/2, fn -> %Annotation{start_pos: 0} end)
+    |> Map.get(:start_pos)
   end
 
   # def annotate(string, annotations) when is_binary(string) and is_list(annotations) do
