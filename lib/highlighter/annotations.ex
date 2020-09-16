@@ -57,7 +57,7 @@ defmodule Highlighter.Annotations do
   def starts_after?(%Annotation{start_pos: start_pos}, pos) when start_pos > pos, do: true
   def starts_after?(_ann, _pos), do: false
 
-  def ends_after?(%Annotation{end_pos: end_pos}, pos) when pos + 1 == end_pos, do: true
+  def ends_after?(%Annotation{end_pos: end_pos}, pos) when pos == end_pos, do: true
   def ends_after?(_ann, _pos), do: false
 
   def sort(annotations) when is_list(annotations) do
@@ -142,49 +142,50 @@ defmodule Highlighter.Annotations do
 
   defp do_annotate({char_int, char_pos}, %{open: open, out: out, anns: anns})
        when is_list(anns) do
+    # IO.inspect(List.to_string([char_int]), label: "-- char")
+
     # 1. opening tags
-    open_anns = Enum.filter(anns, &starts_here?(&1, char_pos))
-    open_tags_str = open_tags_starting_here(anns, char_pos)
-    open_tags_charlist = String.to_charlist(open_tags_str)
+    current_open_anns = Enum.filter(anns, &starts_here?(&1, char_pos))
+    current_open_tags_str = open_tags_starting_here(anns, char_pos)
+    current_open_tags_charlist = String.to_charlist(current_open_tags_str)
 
-    updated_open = MapSet.put(open, open_anns)
-    updated_open_list = MapSet.to_list(updated_open)
+    updated_open_anns = MapSet.union(open, MapSet.new(current_open_anns))
+    updated_open_anns_list = MapSet.to_list(updated_open_anns)
 
-    # 2. find tags that actually end here
-    anns_actually_end_here = filter_ends_after(anns, char_pos - 1)
+    close_anns = Enum.filter(updated_open_anns_list, &ends_after?(&1, char_pos))
+    close_tags_str = close_all(close_anns)
+    close_tags_charlist = String.to_charlist(close_tags_str)
 
-    # 3. find overlaps (i.e. overlapping with tags that actually end here)
-    min_start_pos_anns_actually_end_here = find_min_start_pos(anns_actually_end_here)
+    min_start = find_min_start_pos(updated_open_anns_list)
+    overlaps = Enum.filter(updated_open_anns_list, &(&1.start_pos > min_start))
+    overlaps_close_tags_str = close_all(overlaps)
+    overlaps_close_tags_charlist = String.to_charlist(overlaps_close_tags_str)
+    overlaps_open_tags_str = open_all(overlaps)
+    overlaps_open_tags_charlist = String.to_charlist(overlaps_open_tags_str)
 
-    overlap_anns =
-      Enum.filter(updated_open_list, &starts_after?(&1, min_start_pos_anns_actually_end_here))
-
-    updated_open = Enum.reduce(overlap_anns, updated_open, &MapSet.delete(&2, &1))
-
-    # 4. close tags of overlaps
-    close_tags_of_overlaps = close_all(overlap_anns)
-
-    # 5. close tags that actually end here
-    close_tags_actually_ending_here = close_all(anns_actually_end_here)
-
-    # 6. re-open tags of overlaps
-    open_tags_of_overlaps = open_all(overlap_anns)
-
-    this_loop_out = [
-      open_tags_charlist,
-      char_int,
-      close_tags_of_overlaps,
-      close_tags_actually_ending_here,
-      open_tags_of_overlaps
+    updated_out = [
+      [
+        current_open_tags_charlist,
+        [char_int],
+        overlaps_close_tags_charlist,
+        close_tags_charlist,
+        overlaps_open_tags_charlist
+      ]
+      | out
     ]
 
-    updated_out = [this_loop_out | out]
+    # |> IO.inspect(label: "updated_out")
 
-    updated_anns = MapSet.difference(MapSet.new(anns), updated_open) |> MapSet.to_list()
+    updated_open_anns = MapSet.difference(updated_open_anns, MapSet.new(close_anns))
+
+    updated_anns =
+      MapSet.difference(MapSet.new(anns), MapSet.new(updated_open_anns))
+      |> MapSet.to_list()
+      |> sort()
 
     %{
       out: updated_out,
-      open: updated_open,
+      open: updated_open_anns,
       anns: updated_anns
     }
   end
