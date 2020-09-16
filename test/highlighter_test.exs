@@ -85,6 +85,24 @@ defmodule HighlighterTest do
     end
   end
 
+  describe "starts_and_ends_here?/2" do
+    test "returns true if the annotation starting and ending positions match the position arg" do
+      annotation = %Annotation{start_pos: 3, end_pos: 3, open: "<dog>", close: "</dog>"}
+      assert Annotations.starts_and_ends_here?(annotation, 3)
+    end
+
+    test "returns false if the annotation starting or ending positions differ from position arg" do
+      annotation = %Annotation{start_pos: 3, end_pos: 4, open: "<dog>", close: "</dog>"}
+      refute Annotations.starts_and_ends_here?(annotation, 3)
+
+      annotation = %Annotation{start_pos: 2, end_pos: 3, open: "<dog>", close: "</dog>"}
+      refute Annotations.starts_and_ends_here?(annotation, 3)
+
+      annotation = %Annotation{start_pos: 3, end_pos: 3, open: "<dog>", close: "</dog>"}
+      refute Annotations.starts_and_ends_here?(annotation, 4)
+    end
+  end
+
   # describe "annotate/2" do
   #   test "one annotation" do
   #     dog_annotation = %Annotation{start_pos: 1, end_pos: 3, open: "<woof>", close: "</woof>"}
