@@ -183,6 +183,34 @@ defmodule HighlighterTest do
     end
   end
 
+  describe "validate/2" do
+    test "returns ok tuple with annotations if all are valid" do
+      annotations = [
+        %Annotation{start_pos: 9, end_pos: 13, open: "<koala>", close: "</koala>"},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<dog>", close: "</dog>"},
+        %Annotation{start_pos: 5, end_pos: 7, open: "<cat>", close: "</cat>"}
+      ]
+
+      assert {:ok, annotations} = Annotations.validate(annotations, "dog cat koala")
+    end
+
+    test "returns error tuple if annotations are invalid" do
+      ann1 = %Annotation{start_pos: 4, end_pos: 5, open: "<oops>", close: "</oops>"}
+      ann2 = %Annotation{start_pos: 1, end_pos: 4, open: "<oops>", close: "</oops>"}
+      ann3 = %Annotation{start_pos: 0, end_pos: 2, open: "<oops>", close: "</oops>"}
+
+      annotations = [ann1, ann2, ann3]
+
+      assert {:error, issues} = Annotations.validate(annotations, "abc")
+
+      assert Enum.count(issues) == 3
+
+      assert {:start_and_end_pos_out_of_bounds, ann1} in issues
+      assert {:end_pos_out_of_bounds, ann2} in issues
+      assert {:start_pos_out_of_bounds, ann3} in issues
+    end
+  end
+
   # describe "annotate/2" do
   #   test "one annotation" do
   #     dog_annotation = %Annotation{start_pos: 1, end_pos: 3, open: "<woof>", close: "</woof>"}

@@ -1,6 +1,46 @@
 defmodule Highlighter.Annotations do
   alias Highlighter.Annotation
 
+  def validate(annotations, string) when is_list(annotations) and is_binary(string) do
+    with string_length <- String.length(string),
+         anns_start_pos_oob <- Enum.filter(annotations, &start_pos_oob?(&1, string_length)),
+         anns_end_pos_oob <- Enum.filter(annotations, &end_pos_oob?(&1, string_length)),
+         both_pos_oob <- in_both(annotations, anns_end_pos_oob, anns_start_pos_oob),
+         anns_start_pos_oob <- reject_in(anns_start_pos_oob, both_pos_oob),
+         anns_end_pos_oob <- reject_in(anns_end_pos_oob, both_pos_oob),
+         anns_start_pos_oob <- Enum.map(anns_start_pos_oob, &{:start_pos_out_of_bounds, &1}),
+         anns_end_pos_oob <- Enum.map(anns_end_pos_oob, &{:end_pos_out_of_bounds, &1}),
+         both_oob_err <- :start_and_end_pos_out_of_bounds,
+         both_pos_oob <- Enum.map(both_pos_oob, &{both_oob_err, &1}),
+         all_invalid_annotations <- anns_start_pos_oob ++ anns_end_pos_oob ++ both_pos_oob do
+      if Enum.empty?(all_invalid_annotations) do
+        {:ok, annotations}
+      else
+        {:error, all_invalid_annotations}
+      end
+    end
+  end
+
+  defp end_pos_oob?(%Annotation{end_pos: end_pos}, string_len) when end_pos > string_len, do: true
+  defp end_pos_oob?(%Annotation{end_pos: end_pos}, _string_len) when end_pos < 1, do: true
+  defp end_pos_oob?(_ann, _string_len), do: false
+
+  defp start_pos_oob?(%Annotation{start_pos: start_pos}, _string_len) when start_pos < 1, do: true
+
+  defp start_pos_oob?(%Annotation{start_pos: start_pos}, string_len)
+       when start_pos > string_len,
+       do: true
+
+  defp start_pos_oob?(_ann, _string_len), do: false
+
+  defp in_both(annotations, list1, list2) do
+    Enum.filter(annotations, fn ann -> Enum.member?(list1, ann) and Enum.member?(list2, ann) end)
+  end
+
+  defp reject_in(annotations, reject_if_in_this_list) do
+    Enum.reject(annotations, &Enum.member?(reject_if_in_this_list, &1))
+  end
+
   def open_tag(%Annotation{open: open}), do: open
   def close_tag(%Annotation{close: close}), do: close
 
