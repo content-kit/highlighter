@@ -3,16 +3,5 @@ defmodule Highlighter do
   Documentation for `Highlighter`.
   """
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Highlighter.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
+  defdelegate annotate(string, annotations), to: Highlighter.Annotations
 end
