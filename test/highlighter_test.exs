@@ -311,13 +311,17 @@ defmodule HighlighterTest do
 
     test "annotations starting and ending at the same position" do
       annotations = [
+        %Annotation{start_pos: 1, end_pos: 1, open: "<D>", close: "</D>", nowrap?: true},
         %Annotation{start_pos: 1, end_pos: 1, open: "<A1>", close: "</A1>"},
         %Annotation{start_pos: 1, end_pos: 1, open: "<A2>", close: "</A2>"},
         %Annotation{start_pos: 2, end_pos: 2, open: "<B>", close: "</B>"},
-        %Annotation{start_pos: 3, end_pos: 3, open: "<C>", close: "</C>"}
+        %Annotation{start_pos: 3, end_pos: 3, open: "<C>", close: "</C>"},
+        %Annotation{start_pos: 3, end_pos: 3, open: "<E>", close: "</E>", nowrap?: true}
       ]
 
-      assert Annotations.annotate("xyz", annotations) == "<A1><A2>x</A2></A1><B>y</B><C>z</C>"
+      expected = "<D></D><A1><A2>x</A2></A1><B>y</B><E></E><C>z</C>"
+
+      assert Annotations.annotate("xyz", annotations) == expected
     end
 
     test "one annotation (simple)" do

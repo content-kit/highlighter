@@ -52,6 +52,10 @@ defmodule Highlighter.Annotations do
   def open_tag(%Annotation{open: open}), do: open
   def close_tag(%Annotation{close: close}), do: close
 
+  def open_and_close_tag(%Annotation{} = ann) do
+    open_tag(ann) <> close_tag(ann)
+  end
+
   def starts_here?(%Annotation{start_pos: start_pos}, pos) when start_pos == pos, do: true
   def starts_here?(_ann, _pos), do: false
 
@@ -127,6 +131,17 @@ defmodule Highlighter.Annotations do
     |> Enum.join("")
   end
 
+  def open_and_close_tags_here(annotations, pos) when is_list(annotations) do
+    annotations
+    |> filter_open_and_close_here(pos)
+    |> Enum.map(&open_and_close_tag/1)
+    |> Enum.join("")
+  end
+
+  defp filter_open_and_close_here(annotations, pos) when is_list(annotations) do
+    Enum.filter(annotations, &(starts_here?(&1, pos) and ends_here?(&1, pos) and &1.nowrap?))
+  end
+
   def annotate(string, annotations) when is_binary(string) and is_list(annotations) do
     with {:ok, annotations} <- validate(annotations, string),
          anns <- sort(annotations),
@@ -146,19 +161,20 @@ defmodule Highlighter.Annotations do
     |> List.to_string()
   end
 
-  defp do_annotate({char_int, char_pos}, %{open: open, out: out, anns: anns})
+  defp do_annotate({char, pos}, %{open: open, out: out, anns: anns})
        when is_list(anns) do
-    # IO.inspect(List.to_string([char_int]), label: "-- char")
+    open_and_close_anns = filter_open_and_close_here(anns, pos)
+    open_and_close_tags_str = open_and_close_tags_here(open_and_close_anns, pos)
+    open_and_close_tags_charlist = to_char_list(open_and_close_tags_str)
 
-    # 1. opening tags
-    current_open_anns = Enum.filter(anns, &starts_here?(&1, char_pos))
-    current_open_tags_str = open_tags_starting_here(anns, char_pos)
-    current_open_tags_charlist = to_charlist(current_open_tags_str)
+    open_anns = Enum.filter(anns, &(starts_here?(&1, pos) and &1 not in open_and_close_anns))
+    open_tags_str = open_tags_starting_here(open_anns, pos)
+    open_tags_charlist = to_charlist(open_tags_str)
 
-    updated_open_anns = MapSet.union(open, MapSet.new(current_open_anns))
+    updated_open_anns = MapSet.union(open, MapSet.new(open_anns))
     updated_open_anns_list = MapSet.to_list(updated_open_anns)
 
-    close_anns = Enum.filter(updated_open_anns_list, &ends_here?(&1, char_pos))
+    close_anns = Enum.filter(updated_open_anns_list, &ends_here?(&1, pos))
     close_tags_str = close_all(close_anns)
     close_tags_charlist = to_charlist(close_tags_str)
 
@@ -170,8 +186,9 @@ defmodule Highlighter.Annotations do
     overlaps_open_tags_charlist = to_charlist(overlaps_open_tags_str)
 
     current_out = [
-      current_open_tags_charlist,
-      [char_int],
+      open_and_close_tags_charlist,
+      open_tags_charlist,
+      [char],
       overlaps_close_tags_charlist,
       close_tags_charlist,
       overlaps_open_tags_charlist
@@ -182,7 +199,9 @@ defmodule Highlighter.Annotations do
     updated_open_anns = MapSet.difference(updated_open_anns, MapSet.new(close_anns))
 
     updated_anns =
-      MapSet.difference(MapSet.new(anns), MapSet.new(updated_open_anns))
+      anns
+      |> MapSet.new()
+      |> MapSet.difference(MapSet.new(updated_open_anns))
       |> MapSet.to_list()
       |> sort()
 
