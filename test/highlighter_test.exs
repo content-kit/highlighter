@@ -314,6 +314,12 @@ defmodule HighlighterTest do
       assert Annotations.annotate("aaaa", annotations) == "<b></b><i></i>aa<i></i>aa"
     end
 
+    test "one annotation (simple char)" do
+      annotations = [%Annotation{start_pos: 0, end_pos: 1, open: "[", close: "]"}]
+
+      assert Annotations.annotate("a", annotations) == "[a]"
+    end
+
     test "one annotation (simple word)" do
       dog_annotation = %Annotation{start_pos: 0, end_pos: 3, open: "<woof>", close: "</woof>"}
 
