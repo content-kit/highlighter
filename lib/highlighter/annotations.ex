@@ -166,17 +166,17 @@ defmodule Highlighter.Annotations do
   defp do_annotate({char, pos}, %{open: open, out: out, anns: anns})
        when is_list(anns) do
     # Open annotations that begin here
-    %{open_and_close: oac, open: traversed_open} = traverse_annotations(anns, pos)
+    %{open_and_close: open_and_close, open: traversed_open} = traverse_annotations(anns, pos)
 
     open = sort(traversed_open ++ open)
 
     open_charlist = open_all(traversed_open) |> to_charlist()
-    open_and_close_charlist = open_and_close_all(oac) |> to_charlist()
+    open_and_close_charlist = open_and_close_all(open_and_close) |> to_charlist()
 
     out = out ++ open_and_close_charlist ++ open_charlist
 
     # Remove any opened annotations from the anns list - they're in progress (pending close)
-    anns = sort(anns -- open -- oac)
+    anns = sort(anns -- open -- open_and_close)
 
     # Write the character out
     out = out ++ [char]
