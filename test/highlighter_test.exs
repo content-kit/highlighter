@@ -189,6 +189,20 @@ defmodule HighlighterTest do
     end
   end
 
+  describe "open_all/1" do
+    test "opens all annoations in idx order" do
+      annotations = [
+        %Annotation{start_pos: 1, end_pos: 3, open: "<dog>", close: "</dog>"},
+        %Annotation{start_pos: 9, end_pos: 13, open: "<koala>", close: "</koala>"},
+        %Annotation{start_pos: 5, end_pos: 7, open: "<cat>", close: "</cat>"}
+      ]
+
+      sorted_annotations = Annotations.sort(annotations)
+
+      assert Annotations.open_all(sorted_annotations) == '<dog><cat><koala>'
+    end
+  end
+
   describe "filter_ends_here/2" do
     setup do
       dog_ann = %Annotation{start_pos: 1, end_pos: 3, open: "<dog>", close: "</dog>"}
