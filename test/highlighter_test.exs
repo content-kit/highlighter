@@ -402,5 +402,17 @@ defmodule HighlighterTest do
 
       assert Annotations.annotate("abcd", annotations) == expected
     end
+
+    test "overlapping annotations (infinite loop regression #1)" do
+      annotations = [
+        %Annotation{start_pos: 0, end_pos: 3, open: "<X>", close: "</X>"},
+        %Annotation{start_pos: 1, end_pos: 5, open: "<Y>", close: "</Y>"},
+        %Annotation{start_pos: 1, end_pos: 2, open: "<Z>", close: "</Z>"}
+      ]
+
+      expected = "<X>a<Y><Z>b</Z>c</Y></X><Y>de</Y>"
+
+      assert Annotations.annotate("abcde", annotations) == expected
+    end
   end
 end
