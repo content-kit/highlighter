@@ -175,8 +175,6 @@ defmodule Highlighter.Annotations do
 
     out = out ++ open_and_close_charlist ++ open_charlist
 
-    # out = out ++ traversed_out
-
     # Remove any opened annotations from the anns list - they're in progress (pending close)
     anns = sort(anns -- open -- oac)
 
