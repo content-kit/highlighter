@@ -390,5 +390,17 @@ defmodule HighlighterTest do
 
       assert Annotations.annotate("abcd", annotations) == expected
     end
+
+    test "overlapping annotations (same starting position)" do
+      annotations = [
+        %Annotation{start_pos: 0, end_pos: 2, open: "<X>", close: "</X>"},
+        %Annotation{start_pos: 0, end_pos: 3, open: "<Y>", close: "</Y>"},
+        %Annotation{start_pos: 1, end_pos: 4, open: "<Z>", close: "</Z>"}
+      ]
+
+      expected = "<Y><X>a<Z>b</Z></X><Z>c</Z></Y><Z>d</Z>"
+
+      assert Annotations.annotate("abcd", annotations) == expected
+    end
   end
 end
