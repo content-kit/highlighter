@@ -30,10 +30,10 @@ defmodule Highlighter.Annotations do
   end
 
   defp end_pos_oob?(%Annotation{end_pos: end_pos}, string_len) when end_pos > string_len, do: true
-  defp end_pos_oob?(%Annotation{end_pos: end_pos}, _string_len) when end_pos < 1, do: true
+  defp end_pos_oob?(%Annotation{end_pos: end_pos}, _string_len) when end_pos < 0, do: true
   defp end_pos_oob?(_ann, _string_len), do: false
 
-  defp start_pos_oob?(%Annotation{start_pos: start_pos}, _string_len) when start_pos < 1, do: true
+  defp start_pos_oob?(%Annotation{start_pos: start_pos}, _string_len) when start_pos < 0, do: true
 
   defp start_pos_oob?(%Annotation{start_pos: start_pos}, string_len)
        when start_pos > string_len,
@@ -74,7 +74,8 @@ defmodule Highlighter.Annotations do
   # If idx is -1, then the list has not been sorted before
   def sort([%Annotation{idx: -1} | _] = annotations) when is_list(annotations) do
     annotations
-    |> Enum.reverse()
+    |> Enum.with_index()
+    |> Enum.map(fn {ann, idx} -> Map.put(ann, :orig_idx, idx) end)
     |> Enum.sort(&sort/2)
     |> Enum.with_index()
     |> Enum.map(fn {ann, idx} -> Map.put(ann, :idx, idx) end)
@@ -88,7 +89,12 @@ defmodule Highlighter.Annotations do
   # Sort by start_pos, breaking ties by preferring longer matches
   def sort(%Annotation{} = left, %Annotation{} = right) do
     cond do
-      left.start_pos == right.start_pos && left.end_pos == right.end_pos ->
+      left.start_pos == right.start_pos and
+        left.end_pos == right.end_pos and
+          left.depth == right.depth ->
+        left.orig_idx < right.orig_idx
+
+      left.start_pos == right.start_pos and left.end_pos == right.end_pos ->
         left.depth < right.depth
 
       left.start_pos == right.start_pos ->
@@ -101,22 +107,30 @@ defmodule Highlighter.Annotations do
 
   def find_min_start_pos(annotations) when is_list(annotations) do
     annotations
-    |> Enum.min(&sort/2, fn -> %Annotation{start_pos: 0} end)
+    |> Enum.min(&sort/2, fn -> %Annotation{start_pos: -1} end)
     |> Map.get(:start_pos)
+    |> max(0)
   end
 
-  def close_all(sorted_annotations) when is_list(sorted_annotations) do
-    sorted_annotations
-    |> Enum.sort_by(&Map.get(&1, :idx), &<=/2)
+  def close_all(annotations) when is_list(annotations) do
+    annotations
+    |> sort()
     |> Enum.reverse()
     |> Enum.map(&close_tag/1)
     |> Enum.join("")
   end
 
-  def open_all(sorted_annotations) when is_list(sorted_annotations) do
-    sorted_annotations
-    |> Enum.sort_by(&Map.get(&1, :idx), &<=/2)
+  def open_all(annotations) when is_list(annotations) do
+    annotations
+    |> sort()
     |> Enum.map(&open_tag/1)
+    |> Enum.join("")
+  end
+
+  def open_and_close_all(annotations) when is_list(annotations) do
+    annotations
+    |> sort()
+    |> Enum.map(&open_and_close_tag/1)
     |> Enum.join("")
   end
 
@@ -131,21 +145,10 @@ defmodule Highlighter.Annotations do
     |> Enum.join("")
   end
 
-  def open_and_close_tags_here(annotations, pos) when is_list(annotations) do
-    annotations
-    |> filter_open_and_close_here(pos)
-    |> Enum.map(&open_and_close_tag/1)
-    |> Enum.join("")
-  end
-
-  defp filter_open_and_close_here(annotations, pos) when is_list(annotations) do
-    Enum.filter(annotations, &(starts_here?(&1, pos) and ends_here?(&1, pos) and &1.nowrap?))
-  end
-
   def annotate(string, annotations) when is_binary(string) and is_list(annotations) do
     with {:ok, annotations} <- validate(annotations, string),
          anns <- sort(annotations),
-         charlist_with_pos <- string |> to_charlist() |> Enum.with_index(1) do
+         charlist_with_pos <- string |> to_charlist() |> Enum.with_index() do
       do_annotate(charlist_with_pos, anns)
     else
       {:error, validation_issues} -> {:error, validation_issues}
@@ -155,60 +158,90 @@ defmodule Highlighter.Annotations do
   defp do_annotate(charlist_with_pos, anns)
        when is_list(charlist_with_pos) and is_list(anns) do
     charlist_with_pos
-    |> Enum.reduce(%{open: MapSet.new(), out: [], anns: anns}, &do_annotate(&1, &2))
+    |> Enum.reduce(%{open: [], out: [], anns: anns}, &do_annotate(&1, &2))
     |> Map.get(:out)
-    |> Enum.reverse()
     |> List.to_string()
   end
 
   defp do_annotate({char, pos}, %{open: open, out: out, anns: anns})
        when is_list(anns) do
-    open_and_close_anns = filter_open_and_close_here(anns, pos)
-    open_and_close_tags_str = open_and_close_tags_here(open_and_close_anns, pos)
-    open_and_close_tags_charlist = to_char_list(open_and_close_tags_str)
+    # Open annotations that begin here
+    %{open_and_close: oac, open: traversed_open} = traverse_annotations(anns, pos)
 
-    open_anns = Enum.filter(anns, &(starts_here?(&1, pos) and &1 not in open_and_close_anns))
-    open_tags_str = open_tags_starting_here(open_anns, pos)
-    open_tags_charlist = to_charlist(open_tags_str)
+    open = sort(traversed_open ++ open)
 
-    updated_open_anns = MapSet.union(open, MapSet.new(open_anns))
-    updated_open_anns_list = MapSet.to_list(updated_open_anns)
+    open_charlist = open_all(traversed_open) |> to_charlist()
+    open_and_close_charlist = open_and_close_all(oac) |> to_charlist()
 
-    close_anns = Enum.filter(updated_open_anns_list, &ends_here?(&1, pos))
-    close_tags_str = close_all(close_anns)
-    close_tags_charlist = to_charlist(close_tags_str)
+    out = out ++ open_and_close_charlist ++ open_charlist
 
-    min_start = find_min_start_pos(updated_open_anns_list)
-    overlaps = Enum.filter(updated_open_anns_list, &(&1.start_pos > min_start))
-    overlaps_close_tags_str = close_all(overlaps)
-    overlaps_close_tags_charlist = to_charlist(overlaps_close_tags_str)
-    overlaps_open_tags_str = open_all(overlaps)
-    overlaps_open_tags_charlist = to_charlist(overlaps_open_tags_str)
+    # out = out ++ traversed_out
 
-    current_out = [
-      open_and_close_tags_charlist,
-      open_tags_charlist,
-      [char],
-      overlaps_close_tags_charlist,
-      close_tags_charlist,
-      overlaps_open_tags_charlist
-    ]
+    # Remove any opened annotations from the anns list - they're in progress (pending close)
+    anns = sort(anns -- open -- oac)
 
-    updated_out = [current_out | out]
+    # Write the character out
+    out = out ++ [char]
 
-    updated_open_anns = MapSet.difference(updated_open_anns, MapSet.new(close_anns))
+    # Close annotations that end after the current position:
+    #   - Handle overlapping annotations
+    #   - We sort the open annotations by their start_pos
+    #   - We want to close all annotations ending after the current position AS WELL AS
+    #     annotations that overlap this annotation's end, which means it should reopen
+    #     after closing it
 
-    updated_anns =
-      anns
-      |> MapSet.new()
-      |> MapSet.difference(MapSet.new(updated_open_anns))
-      |> MapSet.to_list()
-      |> sort()
+    # Find annotations that end in the next position
 
-    %{
-      out: updated_out,
-      open: updated_open_anns,
-      anns: updated_anns
-    }
+    to_close = Enum.filter(open, &(&1.end_pos == pos + 1))
+    open = sort(open -- to_close)
+    min_start = find_min_start_pos(to_close)
+
+    # Find annotations that overlap annotations closing after this, and that should
+    # repopen after it closes
+    out =
+      if to_close == [] do
+        out
+      else
+        overlaps = Enum.filter(open, &(&1.start_pos > min_start))
+        # overlap_out = Enum.map(overlaps, &close_tag/1) |> Enum.map(&to_charlist/1)
+        overlap_out = close_all(overlaps) |> to_charlist()
+
+        out ++ overlap_out
+      end
+
+    # Loop through all of the to_close and close them out
+    to_close_out = close_all(to_close) |> to_charlist()
+    out = out ++ to_close_out
+
+    out =
+      if to_close == [] do
+        out
+      else
+        overlaps = Enum.filter(open, &(&1.start_pos > min_start))
+        # overlap_out = Enum.map(overlaps, &open_tag/1) |> Enum.map(&to_charlist/1)
+        overlap_out = open_all(overlaps) |> to_charlist()
+
+        out ++ overlap_out
+      end
+
+    %{anns: anns, out: out, open: open}
+  end
+
+  def traverse_annotations(anns, pos) do
+    init_acc = %{open: [], open_and_close: []}
+    Enum.reduce(anns, init_acc, &do_traverse_annotations(&1, &2, pos))
+  end
+
+  defp do_traverse_annotations(ann, %{open: open, open_and_close: oac} = acc, pos) do
+    cond do
+      ann.start_pos == pos and ann.end_pos == pos ->
+        %{acc | open_and_close: [ann | oac]}
+
+      ann.start_pos == pos ->
+        %{acc | open: sort([ann | open])}
+
+      true ->
+        acc
+    end
   end
 end
