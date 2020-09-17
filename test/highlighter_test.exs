@@ -185,7 +185,7 @@ defmodule HighlighterTest do
 
       sorted_annotations = Annotations.sort(annotations)
 
-      assert Annotations.close_all(sorted_annotations) == "</koala></cat></dog>"
+      assert Annotations.close_all(sorted_annotations) == '</koala></cat></dog>'
     end
   end
 

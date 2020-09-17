@@ -118,6 +118,7 @@ defmodule Highlighter.Annotations do
     |> Enum.reverse()
     |> Enum.map(&close_tag/1)
     |> Enum.join("")
+    |> to_charlist()
   end
 
   def open_all(annotations) when is_list(annotations) do
@@ -125,6 +126,7 @@ defmodule Highlighter.Annotations do
     |> sort()
     |> Enum.map(&open_tag/1)
     |> Enum.join("")
+    |> to_charlist()
   end
 
   def open_and_close_all(annotations) when is_list(annotations) do
@@ -132,6 +134,7 @@ defmodule Highlighter.Annotations do
     |> sort()
     |> Enum.map(&open_and_close_tag/1)
     |> Enum.join("")
+    |> to_charlist()
   end
 
   def filter_ends_here(annotations, pos) when is_list(annotations) do
@@ -200,12 +203,12 @@ defmodule Highlighter.Annotations do
         out
       else
         overlaps = Enum.filter(open, &(&1.start_pos > min_start))
-        overlap_out = close_all(overlaps) |> to_charlist()
+        overlap_out = close_all(overlaps)
         out ++ overlap_out
       end
 
     # Loop through all of the to_close and close them out
-    to_close_out = close_all(to_close) |> to_charlist()
+    to_close_out = close_all(to_close)
     out = out ++ to_close_out
 
     out =
@@ -213,7 +216,7 @@ defmodule Highlighter.Annotations do
         out
       else
         overlaps = Enum.filter(open, &(&1.start_pos > min_start))
-        overlap_out = open_all(overlaps) |> to_charlist()
+        overlap_out = open_all(overlaps)
         out ++ overlap_out
       end
 
