@@ -456,5 +456,18 @@ defmodule HighlighterTest do
 
       assert Annotations.annotate("abcde", annotations) == expected
     end
+
+    test "unicode content in string (chars)" do
+      unicode_string = "abcdef⌘vwxyz"
+
+      annotations = [
+        %Annotation{start_pos: 6, end_pos: 7, open: "<a>", close: "</a>"},
+        %Annotation{start_pos: 8, end_pos: 10, open: "<b>", close: "</b>"},
+        %Annotation{start_pos: 0, end_pos: 11, open: "<c>", close: "</c>"}
+      ]
+
+      assert Annotations.annotate(unicode_string, annotations) ==
+               "<c>abcdef<a>⌘</a>v<b>wx</b>y</c>z"
+    end
   end
 end
