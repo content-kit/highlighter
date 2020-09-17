@@ -369,6 +369,24 @@ defmodule HighlighterTest do
       assert Annotations.annotate("abcd", annotations) == "<1>a<2>b<3></3>c</2>d</1>"
     end
 
+    test "annotations with same range" do
+      annotations = [
+        %Annotation{start_pos: 0, end_pos: 2, open: "[", close: "]"},
+        %Annotation{start_pos: 0, end_pos: 2, open: "<", close: ">"}
+      ]
+
+      assert Annotations.annotate("ab", annotations) == "[<ab>]"
+    end
+
+    test "annotations with same range (with specified depth)" do
+      annotations = [
+        %Annotation{start_pos: 0, end_pos: 2, open: "[", close: "]", depth: 1},
+        %Annotation{start_pos: 0, end_pos: 2, open: "<", close: ">"}
+      ]
+
+      assert Annotations.annotate("ab", annotations) == "<[ab]>"
+    end
+
     test "overlapping annotations (simple chars)" do
       annotations = [
         %Annotation{start_pos: 0, end_pos: 2, open: "<X>", close: "</X>"},
