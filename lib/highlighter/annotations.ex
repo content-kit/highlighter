@@ -200,9 +200,7 @@ defmodule Highlighter.Annotations do
         out
       else
         overlaps = Enum.filter(open, &(&1.start_pos > min_start))
-        # overlap_out = Enum.map(overlaps, &close_tag/1) |> Enum.map(&to_charlist/1)
         overlap_out = close_all(overlaps) |> to_charlist()
-
         out ++ overlap_out
       end
 
@@ -215,9 +213,7 @@ defmodule Highlighter.Annotations do
         out
       else
         overlaps = Enum.filter(open, &(&1.start_pos > min_start))
-        # overlap_out = Enum.map(overlaps, &open_tag/1) |> Enum.map(&to_charlist/1)
         overlap_out = open_all(overlaps) |> to_charlist()
-
         out ++ overlap_out
       end
 
