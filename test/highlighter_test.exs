@@ -387,6 +387,15 @@ defmodule HighlighterTest do
       assert Annotations.annotate("ab", annotations) == "<[ab]>"
     end
 
+    test "annotations with remaining chars in string unannotated" do
+      annotations = [
+        %Annotation{start_pos: 0, end_pos: 2, open: "<b>", close: "</b>"},
+        %Annotation{start_pos: 0, end_pos: 1, open: "<c>", close: "</c>"}
+      ]
+
+      assert Annotations.annotate("xyz", annotations) == "<b><c>x</c>y</b>z"
+    end
+
     test "overlapping annotations (simple chars)" do
       annotations = [
         %Annotation{start_pos: 0, end_pos: 2, open: "<X>", close: "</X>"},
