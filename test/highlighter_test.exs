@@ -378,5 +378,17 @@ defmodule HighlighterTest do
 
       assert annotated == expected
     end
+
+    test "overlapping annotations (complex, triple)" do
+      annotations = [
+        %Annotation{start_pos: 0, end_pos: 2, open: "<X>", close: "</X>"},
+        %Annotation{start_pos: 1, end_pos: 3, open: "<Y>", close: "</Y>"},
+        %Annotation{start_pos: 2, end_pos: 4, open: "<Z>", close: "</Z>"}
+      ]
+
+      expected = "<X>a<Y>b</Y></X><Y><Z>c</Z></Y><Z>d</Z>"
+
+      assert Annotations.annotate("abcd", annotations) == expected
+    end
   end
 end
