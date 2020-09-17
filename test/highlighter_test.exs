@@ -304,20 +304,15 @@ defmodule HighlighterTest do
       assert {:start_and_end_pos_out_of_bounds, _} = issue
     end
 
-    # test "annotations starting and ending at the same position" do
-    #   annotations = [
-    #     %Annotation{start_pos: 1, end_pos: 1, open: "<D>", close: "</D>", nowrap?: true},
-    #     %Annotation{start_pos: 1, end_pos: 1, open: "<A1>", close: "</A1>"},
-    #     %Annotation{start_pos: 1, end_pos: 1, open: "<A2>", close: "</A2>"},
-    #     %Annotation{start_pos: 2, end_pos: 2, open: "<B>", close: "</B>"},
-    #     %Annotation{start_pos: 3, end_pos: 3, open: "<C>", close: "</C>"},
-    #     %Annotation{start_pos: 3, end_pos: 3, open: "<E>", close: "</E>", nowrap?: true}
-    #   ]
+    test "zero-length annotations" do
+      annotations = [
+        %Annotation{start_pos: 0, end_pos: 0, open: "<b>", close: "</b>"},
+        %Annotation{start_pos: 0, end_pos: 0, open: "<i>", close: "</i>"},
+        %Annotation{start_pos: 2, end_pos: 2, open: "<i>", close: "</i>"}
+      ]
 
-    #   expected = "<D></D><A1><A2>x</A2></A1><B>y</B><E></E><C>z</C>"
-
-    #   assert Annotations.annotate("xyz", annotations) == expected
-    # end
+      assert Annotations.annotate("aaaa", annotations) == "<b></b><i></i>aa<i></i>aa"
+    end
 
     test "one annotation (simple)" do
       dog_annotation = %Annotation{start_pos: 0, end_pos: 3, open: "<woof>", close: "</woof>"}
