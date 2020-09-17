@@ -314,7 +314,7 @@ defmodule HighlighterTest do
       assert Annotations.annotate("aaaa", annotations) == "<b></b><i></i>aa<i></i>aa"
     end
 
-    test "one annotation (simple)" do
+    test "one annotation (simple word)" do
       dog_annotation = %Annotation{start_pos: 0, end_pos: 3, open: "<woof>", close: "</woof>"}
 
       annotated = Annotations.annotate("dog", List.wrap(dog_annotation))
@@ -322,7 +322,7 @@ defmodule HighlighterTest do
       assert annotated == "<woof>dog</woof>"
     end
 
-    test "two annotations (simple)" do
+    test "two annotations (simple words)" do
       dog_annotation = %Annotation{start_pos: 0, end_pos: 3, open: "<woof>", close: "</woof>"}
       cat_annotation = %Annotation{start_pos: 8, end_pos: 11, open: "<meow>", close: "</meow>"}
       annotations = [dog_annotation, cat_annotation]
@@ -332,7 +332,7 @@ defmodule HighlighterTest do
       assert annotated == "<woof>dog</woof> and <meow>cat</meow>"
     end
 
-    test "three annotations (simple)" do
+    test "three annotations (simple words)" do
       dog_annotation = %Annotation{start_pos: 0, end_pos: 3, open: "<woof>", close: "</woof>"}
       cat_annotation = %Annotation{start_pos: 8, end_pos: 11, open: "<meow>", close: "</meow>"}
       cow_annotation = %Annotation{start_pos: 16, end_pos: 19, open: "<moo>", close: "</moo>"}
@@ -344,7 +344,7 @@ defmodule HighlighterTest do
       assert annotated == "<woof>dog</woof> and <meow>cat</meow> and <moo>cow</moo>"
     end
 
-    test "overlapping annotations (simple)" do
+    test "overlapping annotations (simple chars)" do
       annotations = [
         %Annotation{start_pos: 0, end_pos: 2, open: "<X>", close: "</X>"},
         %Annotation{start_pos: 1, end_pos: 3, open: "<Y>", close: "</Y>"}
@@ -359,7 +359,7 @@ defmodule HighlighterTest do
       assert annotated == expected_overlapping
     end
 
-    test "overlapping annotations (simple, double)" do
+    test "overlapping annotations (simple chars, double)" do
       annotations = [
         %Annotation{start_pos: 0, end_pos: 2, open: "<X1>", close: "</X1>"},
         %Annotation{start_pos: 0, end_pos: 2, open: "<X2>", close: "</X2>"},
@@ -374,7 +374,7 @@ defmodule HighlighterTest do
       assert annotated == expected
     end
 
-    test "overlapping annotations (complex, triple)" do
+    test "overlapping annotations (complex chars, triple)" do
       annotations = [
         %Annotation{start_pos: 0, end_pos: 2, open: "<X>", close: "</X>"},
         %Annotation{start_pos: 1, end_pos: 3, open: "<Y>", close: "</Y>"},
@@ -386,7 +386,7 @@ defmodule HighlighterTest do
       assert Annotations.annotate("abcd", annotations) == expected
     end
 
-    test "overlapping annotations (same starting position)" do
+    test "overlapping annotations (chars, same starting position)" do
       annotations = [
         %Annotation{start_pos: 0, end_pos: 2, open: "<X>", close: "</X>"},
         %Annotation{start_pos: 0, end_pos: 3, open: "<Y>", close: "</Y>"},
@@ -398,7 +398,7 @@ defmodule HighlighterTest do
       assert Annotations.annotate("abcd", annotations) == expected
     end
 
-    test "overlapping annotations (infinite loop regression #1)" do
+    test "overlapping annotations (chars, infinite loop regression #1)" do
       annotations = [
         %Annotation{start_pos: 0, end_pos: 3, open: "<X>", close: "</X>"},
         %Annotation{start_pos: 1, end_pos: 5, open: "<Y>", close: "</Y>"},
