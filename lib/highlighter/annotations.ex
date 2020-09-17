@@ -193,7 +193,7 @@ defmodule Highlighter.Annotations do
 
     # Find annotations that end in the next position
     to_close = Enum.filter(open, &(&1.end_pos == pos + 1))
-    open = sort(open -- to_close)
+    open = open -- to_close
     min_start = find_min_start_pos(to_close)
 
     # Find annotations that overlap annotations closing after this, and that should
