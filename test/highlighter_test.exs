@@ -350,6 +350,15 @@ defmodule HighlighterTest do
       assert annotated == "<woof>dog</woof> and <meow>cat</meow> and <moo>cow</moo>"
     end
 
+    test "nested annotations (simple chars)" do
+      annotations = [
+        %Annotation{start_pos: 0, end_pos: 3, open: "[", close: "]"},
+        %Annotation{start_pos: 1, end_pos: 2, open: "<", close: ">"}
+      ]
+
+      assert Annotations.annotate("abc", annotations) == "[a<b>c]"
+    end
+
     test "overlapping annotations (simple chars)" do
       annotations = [
         %Annotation{start_pos: 0, end_pos: 2, open: "<X>", close: "</X>"},
