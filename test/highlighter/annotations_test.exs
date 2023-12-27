@@ -184,7 +184,7 @@ defmodule Highlighter.AnnotationsTest do
 
       sorted_annotations = Annotations.sort(annotations)
 
-      assert Annotations.close_all(sorted_annotations) == '</koala></cat></dog>'
+      assert Annotations.close_all(sorted_annotations) == ~c"</koala></cat></dog>"
     end
   end
 
@@ -198,7 +198,7 @@ defmodule Highlighter.AnnotationsTest do
 
       sorted_annotations = Annotations.sort(annotations)
 
-      assert Annotations.open_all(sorted_annotations) == '<dog><cat><koala>'
+      assert Annotations.open_all(sorted_annotations) == ~c"<dog><cat><koala>"
     end
   end
 
@@ -212,7 +212,7 @@ defmodule Highlighter.AnnotationsTest do
 
       sorted_annotations = Annotations.sort(annotations)
 
-      expected = '<dog></dog><cat></cat><koala></koala>'
+      expected = ~c"<dog></dog><cat></cat><koala></koala>"
       assert Annotations.open_and_close_all(sorted_annotations) == expected
     end
   end
@@ -253,7 +253,7 @@ defmodule Highlighter.AnnotationsTest do
         %Annotation{start_pos: 5, end_pos: 7, open: "<cat>", close: "</cat>"}
       ]
 
-      assert {:ok, annotations} = Annotations.validate(annotations, "dog cat koala")
+      assert {:ok, _annotations} = Annotations.validate(annotations, "dog cat koala")
     end
 
     test "returns error tuple if annotations are invalid" do
