@@ -81,7 +81,7 @@ defmodule Highlighter.Annotations do
     |> Enum.map(fn {ann, idx} -> Map.put(ann, :idx, idx) end)
   end
 
-  # If idx is not -1, then it was sorted previously and assigned indx values - sort by idx again
+  # If idx is not -1, then it was sorted previously and assigned idx values - sort by idx again
   def sort([%Annotation{idx: idx} | _] = annotations) when idx > -1 and is_list(annotations) do
     Enum.sort_by(annotations, &Map.get(&1, :idx), &<=/2)
   end
@@ -178,7 +178,7 @@ defmodule Highlighter.Annotations do
 
     out = out ++ open_and_close_charlist ++ open_charlist
 
-    # Remove any opened annotations from the anns list - they're in progress (pending close)
+    # Remove any opened annotations from the `anns` list - they're in progress (pending close)
     anns = sort(anns -- open -- open_and_close)
 
     # Write the character out
@@ -197,7 +197,7 @@ defmodule Highlighter.Annotations do
     min_start = find_min_start_pos(to_close)
 
     # Find annotations that overlap annotations closing after this, and that should
-    # repopen after it closes
+    # re-open after it closes
     out =
       if to_close == [] do
         out
