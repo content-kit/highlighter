@@ -2,16 +2,22 @@
 
 <p align="center">
   <picture>
-    <img alt="Robot alchemist highlighting text" src="https://github.com/content-kit/highlighter/blob/4b108ec69a35d976ebe2691d57e07f60487d5d87/assets/highlighter.png" width="200" style="border-radius: 30px;">
+    <img alt="Robot alchemist highlighting text" src="https://github.com/content-kit/highlighter/blob/4b108ec69a35d976ebe2691d57e07f60487d5d87/assets/highlighter.png" width="200">
   </picture>
 </p>
 
 Highlighter is an Elixir package which can be used to highlight or
 annotate text using a list of annotations.
 
+## Project status
+
+It's early stages for this project and it may not be "production ready"
+– for instance, there have been no performance benchmarks or
+optimizations.
+
 ## Installation
 
-Add `:highlighter` to your list of dependencies in mix.exs (use $ `mix
+Add `:highlighter` to your list of dependencies in mix.exs (use `$ mix
 hex.info highlighter` to find the latest version):
 
 ```elixir
@@ -24,8 +30,8 @@ end
 
 ## Usage
 
-To use Highlighter, invoke `Highlighter.annotate/2` with a
-string and a list of `Highlighter.Annotation`'s to apply to that string:
+To use Highlighter, invoke `Highlighter.annotate/2` with a string and a
+list of `Highlighter.Annotation`'s to apply to that string:
 
 ```elixir
 test "three annotations (simple words)" do
@@ -49,10 +55,10 @@ This project is inspired by and based on
 [sourcegraph/annotate](https://github.com/sourcegraph/annotate), a Go
 package by Sourcegraph.
 
-The `sourcegraph/annotate` is licensed under the [BSD-3
+The `sourcegraph/annotate` Go package is licensed under the [BSD-3
 License](https://github.com/sourcegraph/annotate/blob/master/LICENSE).
 
-A huge thanks to Sourcegraph and the contributors to the Go package!
+A huge thanks to Sourcegraph and contributors to the Go package!
 
 #### Modifications
 
