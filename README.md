@@ -13,7 +13,7 @@ annotate text using a list of annotations.
 
 It's early stages for this project and it may not be "production ready"
 – for instance, there have been no performance benchmarks or
-optimizations.
+optimizations. Contributions are welcome!
 
 ## Installation
 
