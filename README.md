@@ -15,19 +15,6 @@ It's early stages for this project and it may not be "production ready"
 – for instance, there have been no performance benchmarks or
 optimizations. Contributions are welcome!
 
-## Installation
-
-Add `:highlighter` to your list of dependencies in mix.exs (use `$ mix
-hex.info highlighter` to find the latest version):
-
-```elixir
-def deps do
-  [
-    {:highlighter, "~> 0.1.0"}
-  ]
-end
-```
-
 ## Usage
 
 To use Highlighter, invoke `Highlighter.annotate/2` with a string and a
