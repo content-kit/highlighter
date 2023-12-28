@@ -51,19 +51,19 @@ end
 
 ### `sourcegraph/annotate`
 
-This project is inspired by and based on
-[sourcegraph/annotate](https://github.com/sourcegraph/annotate), a Go
-package by Sourcegraph.
+This project is inspired by
+[`annotate`](https://github.com/sourcegraph/annotate), a BSD-3-Clause
+licensed Go package developed by Sourcegraph. A copy of the licence is
+available at:
 
-The `sourcegraph/annotate` Go package is licensed under the [BSD-3
-License](https://github.com/sourcegraph/annotate/blob/master/LICENSE).
+> [https://github.com/sourcegraph/annotate/blob/master/LICENSE](https://github.com/sourcegraph/annotate/blob/master/LICENSE)
 
-A huge thanks to Sourcegraph and contributors to the Go package!
+We wish to express our gratitude to Sourcegraph and all the contributors
+to the `annotate` Go package, which was a very useful reference for this
+Elixir package.
 
-#### Modifications
-
-Modifications made as part of porting `sourcegraph/annotate` from Go to
-Elixir are covered under the Apache License 2.0.
+(References to Sourcegraph and its contributors are for credit purposes
+only and do not imply any endorsement or promotion.)
 
 ## License
 
