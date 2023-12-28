@@ -2,7 +2,7 @@
 
 <p align="center">
   <picture>
-    <img alt="Robot alchemist highlighting text" src="https://raw.githubusercontent.com/content-kit/highlighter/main/assets/highlighter.png" width="200" style="border-radius: 30px;">
+    <img alt="Robot alchemist highlighting text" src="https://github.com/content-kit/highlighter/blob/4b108ec69a35d976ebe2691d57e07f60487d5d87/assets/highlighter.png" width="200" style="border-radius: 30px;">
   </picture>
 </p>
 
