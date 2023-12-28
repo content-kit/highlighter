@@ -40,7 +40,7 @@ end
 
 This project is inspired by
 [`annotate`](https://github.com/sourcegraph/annotate), a BSD-3-Clause
-licensed Go package developed by Sourcegraph. A copy of the licence is
+licensed Go package developed by Sourcegraph. A copy of the license is
 available at:
 
 > [https://github.com/sourcegraph/annotate/blob/master/LICENSE](https://github.com/sourcegraph/annotate/blob/master/LICENSE)
