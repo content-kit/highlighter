@@ -29,7 +29,7 @@ defmodule Highlighter.MixProject do
   defp package() do
     [
       maintainers: ["James Elligett"],
-      files: ~w(lib mix.exs README* LICENSE* CHANGELOG*),
+      files: ~w(lib mix.exs README* CHANGELOG*),
       licenses: ["Apache-2.0"],
       links: %{"GitHub" => @source_url, "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md"}
     ]
